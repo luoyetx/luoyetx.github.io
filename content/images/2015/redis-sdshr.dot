@@ -1,0 +1,4 @@
+digraph G {
+    sdsheader [shape=record,label="SDS HEADER | len | free |<l> buf | <r> 'R' | 'e' | 'd' | 'i' | 's' | '\\0' | ......"];
+    sdsheader:l -> sdsheader:r;
+}
