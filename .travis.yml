@@ -3,7 +3,7 @@ python:
   - "2.7"
 branches:
   only:
-    - master
+    - src
 install: "pip install -r requirements.txt"
 script:
   - make publish github
