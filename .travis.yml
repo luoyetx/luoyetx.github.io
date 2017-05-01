@@ -1,0 +1,12 @@
+language: python
+python:
+  - "2.7"
+branches:
+  only:
+    - master
+install: "pip install -r requirements.txt"
+script:
+  - make publish github
+env:
+  global:
+    - secure: kNXYmKnzRMmfSm4tsoeQwYIgZsanoYn3L3RPpswZnXz7yCf0IGPvHli/hbjGTHwQx98kMblZ0yyJvZXdu7oAgITghEJy/Y3BzHQjq6FK++zQh/aI6itMPHUexWYovEiqLhFDllEpQv7CJp4wQf9eSKY214KW6N/wFh4m2CA3IO7zs9bAqG28+wRv76dw8jv6aQ2dkI0daO34iD23JKeKaPasOstb/lgud9lde43AMcAvh/WGQgtieu9i0RhTNGU04S5khQDSa4z39YtGDm1U2tHw63WXmI1+VhAoHAjzVGTkXUrtv7H19YEoFlfMIjibnAJCmoyzdiEAiGXWam+42r54D8z7zsYj1aHz2GWxJpKJ2zRXzKkDDxoSEqhmAxYJ1SG2+MpBi0SxvOI5ujpKXzSSe4+zFl0ABcZRKyzMjvXrKqrS7uVew0dOOJVnIqAznTy+fP1PZJ1QcM3+lS7RyIWIT9J0D7PASs5XnhROSXHkM7FiMWiwo6yuJMk00k3qaIiC2mhvrFeP+kk9RYW+99N72YvvcvHhvUXJmPtsRkNCAB0EtlRZO61A7bb4nclkU7t6i23PQltpDRowz05oz8cmezrFua2RxaW1c1tHs/sJEq+Ig4nNf8Pr7unSlI1RbJj0HvY1OM3SZG1BS+rm4bU8nrNhY2BB/eeoCC3IUR4=
