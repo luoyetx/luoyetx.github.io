@@ -20,4 +20,4 @@ $ make serve
 
 ### Deploy
 
-deploy and publish via [Travis CI](https://travis-ci.org/luoyetx/blog).
+deploy and publish via [Travis CI](https://travis-ci.org/luoyetx/luoyetx.github.io).
