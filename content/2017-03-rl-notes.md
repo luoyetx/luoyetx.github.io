@@ -1,4 +1,4 @@
-Title: Reforcement Learning Notes
+Title: Reinforcement Learning Notes
 Date: 2017-03-09
 Slug: rl-notes
 Category: Machine Learning
