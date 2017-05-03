@@ -6,8 +6,8 @@ My blog source.
 ### Install
 
 ```
-$ git clone --recursive git@github.com:luoyetx/blog.git
-$ cd blog
+$ git clone --recursive git@github.com:luoyetx/luoyetx.github.io.git
+$ cd luoyetx.github.io
 $ pip install -r requirements.txt
 ```
 
