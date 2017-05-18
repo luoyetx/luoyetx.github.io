@@ -32,7 +32,7 @@ $$ \frac{\partial f}{\partial x} = \left[ (-1)^kcos(m\theta)-2k \right] \frac{|w
 
 $$
 \begin{align}
-\frac{\partial J}{\partial x_i} &= \sum_{j,j \neq y_i} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial x_i} + \frac{\partial J}{\partial x_{i,y_i}}\cdot\frac{\partial f_{i,y_i}}{\partial x_i} \\
+\frac{\partial J}{\partial x_i} &= \sum_{j,j \neq y_i} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial x_i} + \frac{\partial J}{\partial f_{i,y_i}}\cdot\frac{\partial f_{i,y_i}}{\partial x_i} \\
 &= \sum_{j}\frac{\partial J}{\partial f_{i,j}}\cdot w_j + \frac{\partial J}{\partial f_{i,y_i}}\left( \frac{\partial f_{i,y_i}}{\partial x_i} - w_{y_i} \right)
 \end{align}
 $$
