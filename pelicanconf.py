@@ -27,8 +27,7 @@ PLUGIN_PATHS = ['./pelican-plugins']
 PLUGINS = ["render_math"]
 
 # Static Paths
-STATIC_PATHS = ['images', 'extra/CNAME']
-EXTRA_PATH_METADATA = {'extra/CNAME': {'path': 'CNAME'},}
+STATIC_PATHS = ['images']
 
 # Article and Page URL
 ARTICLE_URL = '{date:%Y}/{date:%m}/{slug}/'
