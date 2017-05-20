@@ -6,7 +6,7 @@ AUTHOR = u'zhangjie'
 SITENAME = u"luoyetx's blog"
 SITELOGO = '/images/avatar.jpg'
 SITESUBTITLE = u"Computer Vision and Machine Learning"
-SITEURL = 'http://luoyetx.github.io'
+SITEURL = 'https://luoyetx.github.io'
 GITHUB_URL = 'https://github.com/luoyetx'
 
 PATH = 'content'
@@ -27,7 +27,8 @@ PLUGIN_PATHS = ['./pelican-plugins']
 PLUGINS = ["render_math"]
 
 # Static Paths
-STATIC_PATHS = ['images']
+STATIC_PATHS = ['images', 'extra/CNAME']
+EXTRA_PATH_METADATA = {'extra/CNAME': {'path': 'CNAME'},}
 
 # Article and Page URL
 ARTICLE_URL = '{date:%Y}/{date:%m}/{slug}/'
