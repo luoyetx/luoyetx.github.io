@@ -6,10 +6,12 @@ I am currently focused on Computer Vision and Machine Learning, but I am also in
 
 ### Education
 
-- 2015 ~ present, Huazhong University of Science and Technology
-Master's degress
-- 2011 ~ 2015, Huazhong University of Science and Technology
-Banchelor's degress
+- 2015.09 ~ present, Master's degree, Huazhong University of Science and Technology.
+- 2011.09 ~ 2015.07, Bachelor's degree, Huazhong University of Science and Technology.
+
+### Experience
+
+- 2017.06 ~ present, Research and Development Intern at [SenseTime](https://www.sensetime.com/).
 
 ### Skills
 
@@ -27,7 +29,7 @@ daily working environment.
 - [luoyetx/mx-lsoftmax](https://github.com/luoyetx/mx-lsoftmax)
 mxnet version of Large-Margin Softmax Loss for Convolutional Neural Networks.
 - [Pixivly/Pixivly](https://github.com/Pixivly/Pixivly)
-Daily Top Illustrations On [Pixiv.net](http://www.pixiv.net/). You can visit the web page [here](http://pixivly.luoyetx.com/). **NSFW**
+Daily Top Illustrations On [Pixiv.net](http://www.pixiv.net/). You can visit the web page [here](https://pixivly.herokuapp.com/). **NSFW**
 - [luoyetx/JDA](https://github.com/luoyetx/JDA)
 C++ implementation of Joint Cascade Face Detection and Alignment.
 - [luoyetx/face-alignment-at-3000fps](https://github.com/luoyetx/face-alignment-at-3000fps)
