@@ -11,7 +11,7 @@ I am currently focused on Computer Vision and Machine Learning, but I am also in
 
 ### Experience
 
-- 2017.06 ~ present, Research and Development Intern at [SenseTime](https://www.sensetime.com/).
+- 2017.06 ~ 2017.08, Research and Development Intern at [SenseTime](https://www.sensetime.com/).
 
 ### Skills
 
