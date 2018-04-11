@@ -54,7 +54,6 @@ RELATIVE_URLS = True
 SOCIAL = (('github', 'https://github.com/luoyetx'),
           ('twitter', 'https://twitter.com/luoyetx'),
           ('envelope-o', 'mailto://luoyetx@gmail.com'),
-          ('weibo', 'http://weibo.com/luoyetx'),
           ('steam', 'http://steamcommunity.com/id/luoyetx'),)
 
 MAIN_MENU = True

@@ -6,12 +6,12 @@ I am currently focused on Computer Vision and Machine Learning, but I am also in
 
 ### Education
 
-- 2015.09 ~ present, Master's degree, Huazhong University of Science and Technology.
-- 2011.09 ~ 2015.07, Bachelor's degree, Huazhong University of Science and Technology.
+- 2015.09 ~ 2018.06, Master's degree, Huazhong University of Science and Technology.
+- 2011.09 ~ 2015.06, Bachelor's degree, Huazhong University of Science and Technology.
 
 ### Experience
 
-- 2017.06 ~ 2017.08, Research and Development Intern at [SenseTime](https://www.sensetime.com/).
+- 2017.06 ~ 2017.08, Research and Development Intern at [SenseTime Beijing](https://www.sensetime.com/), focused on Text Recognition and Data Generation.
 
 ### Skills
 
@@ -43,7 +43,6 @@ Predict facial landmarks with Deep CNNs powered by Caffe.
 
 - github [@luoyetx](https://github.com/luoyetx)
 - steam [@luoyetx](http://steamcommunity.com/id/luoyetx/)
-- weibo [@luoyetx](http://weibo.com/luoyetx)
 - twitter [@luoyetx](https://twitter.com/luoyetx)
 
 ### Contact Me
