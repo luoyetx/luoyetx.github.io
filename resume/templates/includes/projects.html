@@ -1,0 +1,14 @@
+{% if PROJECTS %}
+<section class="section projects-section">
+    <h2 class="section-title"><i class="fa fa-archive"></i>Projects</h2>
+    <div class="intro">
+        <p>{{ PROJECT_INTRO }}</p>
+    </div><!--//intro-->
+    {% for project in PROJECTS %}
+        <div class="item">
+            <div class="project-title"><a href="{{ project['url'] }}">{{ project['title'] }}</a></div>
+            <div class="project-tagline">{{ project['tagline'] }}</div>
+        </div><!--//item-->
+    {% endfor %}
+</section><!--//section-->
+{% endif %}
