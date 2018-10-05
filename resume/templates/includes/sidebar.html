@@ -12,8 +12,6 @@
 
            {% if EMAIL %}
             <li class="email"><i class="fa fa-envelope"></i><a href="mailto: {{EMAIL}}">{{EMAIL}}</a></li>
-            {% else %}
-            <li class="email"><i class="fa fa-envelope"></i><a href="mailto:alan.doe@website.com">alan.doe@website.com</a></li>
             {% endif %}
 
             {% if PHONE %}
@@ -25,15 +23,15 @@
             {% endif %}
 
             {% if LINKEDIN %}
-            <li class="linkedin"><i class="fa fa-linkedin"></i><a href="https://in.linkedin.com/in/{{LINKEDIN}}" target="_blank">linkedin.com/in/{{LINKEDIN}}</a></li>
+            <li class="linkedin"><i class="fa fa-linkedin"></i><a href="https://in.linkedin.com/in/{{LINKEDIN}}" target="_blank">@{{LINKEDIN}}</a></li>
             {% endif %}
 
             {% if GITHUB %}
-            <li class="github"><i class="fa fa-github"></i><a href="http://github.com/{{GITHUB}}" target="_blank">github.com/{{GITHUB}}</a></li>
+            <li class="github"><i class="fa fa-github"></i><a href="http://github.com/{{GITHUB}}" target="_blank">@{{GITHUB}}</a></li>
             {% endif %}
 
             {% if TWITTER %}
-            <li class="twitter"><i class="fa fa-twitter"></i><a href="https://twitter.com/{{TWITTER}}" target="_blank">{{TWITTER}}</a></li>
+            <li class="twitter"><i class="fa fa-twitter"></i><a href="https://twitter.com/{{TWITTER}}" target="_blank">@{{TWITTER}}</a></li>
             {% endif %}
 
         </ul>
@@ -41,6 +39,5 @@
    {% include 'includes/education.html' %}
    {% include 'includes/language.html' %}
    {% include 'includes/interests.html' %}
-   {% include 'includes/about.html' %}
 
 </div><!--//sidebar-wrapper-->

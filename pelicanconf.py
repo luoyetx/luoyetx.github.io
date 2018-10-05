@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 
 # AUTHOR = u'zhangjie'
-# SITENAME = u"luoyetx's blog"
+SITENAME = u'zhangjie'
 # SITELOGO = '/images/avatar.jpg'
 # SITESUBTITLE = u"Computer Vision and Machine Learning"
 SITEURL = 'https://luoyetx.github.io'
@@ -132,14 +132,14 @@ INTERESTS = [
 EXPERIENCES = [
 	{
 		'job_title': 'Algorithm Engineer',
-		'time': 'Jul 2018 - Present',
-		'company': 'ByteDance',
+		'time': 'July 2018 - Present',
+		'company': 'ByteDance, AI Lab',
 		'details': 'Visual search for images and videos.'
 	},
 	{
 		'job_title': 'Research Intern',
-		'time': 'Jun 2017 - Aug 2017',
-		'company': 'SenseTime',
+		'time': 'June 2017 - Aug 2017',
+		'company': 'SenseTime, OCR',
 		'details': 'Text recognition and unsupervised data generation.'
 	},
 ]
