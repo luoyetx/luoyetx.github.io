@@ -83,7 +83,7 @@ WEBSITE = 'luoyetx.github.io'
 GITHUB = 'luoyetx'
 #TWITTER = '@iamsuheb'
 
-CAREER_SUMMARY = 'I am currectly working at ByteDance AI Lab, focused on visual search for images and videos. Before, I have worked on face related algorithm include detection, alignment and recognition.'
+CAREER_SUMMARY = 'I am currectly working at ByteDance AI Lab, focused on visual search for images and videos. Before, I have worked on face related algorithm including detection, alignment and recognition.'
 
 # SKILLS = [
 # 	{
