@@ -83,7 +83,7 @@ WEBSITE = 'luoyetx.github.io'
 GITHUB = 'luoyetx'
 #TWITTER = '@iamsuheb'
 
-CAREER_SUMMARY = 'I am currectly working at ByteDance AI Lab, focused on visual search for images and videos. Before, I have worked on face related algorithm including detection, alignment and recognition.'
+CAREER_SUMMARY = 'I am currectly working at ByteDance Search Group, focused on search for Tiktok. Before, I have worked on face related algorithm including detection, alignment and recognition. If you are interested in applying computer vision and natrual language processing knowledege on search area, please send your CV to <a href="mailto: zhangjie.ai@bytedance.com">zhangjie.ai@bytedance.com</a>. You can find more JD <a href="https://job.bytedance.com/society?summary=873&city=11&q1=搜索&position_type=">here</a>.'
 
 # SKILLS = [
 # 	{
@@ -131,15 +131,21 @@ INTERESTS = [
 
 EXPERIENCES = [
 	{
+		'job_title': 'Advanced Algorithm Engineer',
+		'time': 'April 2019 - Present',
+		'company': 'ByteDance, Search Group',
+		'details': 'Search for Tiktok.'
+	},
+	{
 		'job_title': 'Algorithm Engineer',
-		'time': 'July 2018 - Present',
+		'time': 'July 2018 - April 2019',
 		'company': 'ByteDance, AI Lab',
 		'details': 'Visual search for images and videos.'
 	},
 	{
 		'job_title': 'Research Intern',
 		'time': 'June 2017 - Aug 2017',
-		'company': 'SenseTime, OCR',
+		'company': 'SenseTime, OCR Team',
 		'details': 'Text recognition and unsupervised data generation.'
 	},
 ]
