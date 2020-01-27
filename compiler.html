@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Something You Should Kown About C/C++ Compiler</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/compiler.html" rel="bookmark"
+         title="Permalink to Something You Should Kown About C/C++ Compiler">Something You Should Kown About C/C++ Compiler</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2015-12-07T00:00:00+08:00">
+      Mon 07 December 2015
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/technology.html">Technology</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>我以前经常问身边的同学关于 C/C++ 代码编译链接的问题，问他们知不知道这方面的细节。非常遗憾，绝大部分人连编译和链接都分不清楚，感慨学校教的 C 语言课太水了，很多同学也不怎么敲代码=。=，我写这篇文章记录一下我自己对 C/C++ 编译器的理解，希望也能帮助到其他同学，希望你们在遇到编译链接错误时，不要慌张，冷静分析，找对排查问题的方向。</p>
+<p>我们都知道编译代码的过程分成 4 个环节，预处理，编译，汇编，链接（生成可执行文件或者库文件）。首先我们需要明确几点。</p>
+<ol>
+<li>头文件只参与预处理环节，跟编译和后续环节没有什么关系。</li>
+<li>任何一个源文件都是独立编译，相互之间不干扰。</li>
+<li>前三个环节并不涉及到第三方的库文件，但是在预处理环节会涉及到库的头文件。</li>
+<li>预处理环节一般不会出错，哪怕你使用了一个未定义的宏，也不会出错，只会在编译时报错，而任何编译错误都不会跟库文件扯上任何关系。</li>
+<li>汇编一般也不会出错，它只是编译器一个中间的隐性环节，把汇编代码编译成目标代码。</li>
+<li>链接是天坑，标准库和第三方库的库文件都是在这个环节加入进来的。</li>
+<li>我们遇到的问题，基本上都是编译出错或者链接出错。然而事情并没有那么简单。</li>
+</ol>
+<h3>预处理</h3>
+<p>预处理我们接触最多的就是包含头文件的 <code>#include</code> 和定义宏的 <code>#define</code>，同时还有规范性的头文件保护宏。在这个环节出现最多的问题是找不到头文件，然后编译器停止工作。这个问题是最容易被解决的，但是很多人可能并不是很了解编译器寻找头文件的流程。这里我们首先要区分 3 种头文件，第一种是标准库的头文件，第二种是代码中引用到的第三方库的头文件，第三种是自己代码编写的头文件。编译器在工作时是有一个头文件目录列表的，根据目录列表去寻找头文件，第一个目录便是当前代码的所在的目录，其次是编译器自行定义的目录（一般是标准库头文件所在的目录），最后是我们自己在编译时加上的目录列表，可以有多个，包括需要引用的第三方库的头文件目录和自己代码的头文件目录（可能你自己写的头文件跟源文件不在一个目录下）。</p>
+<h3>编译与汇编</h3>
+<p>编译环节出错那基本就是语法的问题，代码写得有问题直接导致编译器停止工作。这里不得不提一下 C++11 标准，并不是所有编译器都实现了新标准的所有规范，同时可能编译器之间实现的特性还有差异，这些在写跨编译器或跨平台代码事要特别注意，同一个编译器的不同版本之间也会略有差异。</p>
+<h3>链接</h3>
+<p>链接环节出现问题非常之多，类型也是五花八门，奇奇怪怪，会非常坑。但是归根结底主要是两种，第一是链接时找不到符号，第二是链接时找到了多个符号。很多同学碰到链接出错时编译器吐出来的一堆一堆乱七八糟的函数符号估计都很蛋疼，但是我们多数时候碰到的都是 <code>undefined reference to xxx</code>，即找不到符号。</p>
+<h5>符号</h5>
+<p>要搞明白链接时编译器是怎么工作的，我们就得先搞清楚 <code>符号</code> 在编译系统中的作用。一个符号可以指代一块内存或者一段代码。代码中与符号相关的几处地方如下。</p>
+<ol>
+<li>变量的声明，告诉编译器有这么一个变量指代一块内存。</li>
+<li>变量的定义，告诉编译器需要为这个变量分配一块内存。</li>
+<li>函数的声明，告诉编译器有这么一段代码可以使用，输入输出规范如何，应该怎么调用。</li>
+<li>函数的定义，告诉编译器这段代码的逻辑实现。</li>
+<li>引用变量或函数，代码中使用某个变量或者调用某个函数。</li>
+</ol>
+<div class="highlight"><pre><span></span><span class="k">extern</span> <span class="kt">int</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// declare</span>
+<span class="kt">int</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// define</span>
+
+<span class="kt">void</span> <span class="nf">foo</span><span class="p">();</span> <span class="c1">// declare</span>
+<span class="kt">void</span> <span class="nf">foo</span><span class="p">()</span> <span class="p">{</span> <span class="c1">// define</span>
+  <span class="n">a</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>编译器会给每个变量和每个函数分配一个符号，这样做的好处是方便符号的重用（函数的重用），也利于项目代码的模块化，多个目标文件的链接。由于每个源文件代码都是独立编译的，并生成目标文件，编译器在处理这个源文件时，最后会在目标文件中指出它所需要的符号和它能够提供的符号，这样，链接器在链接一堆目标文件时（库所提供的目标文件和自己代码的目标文件）就能够为每个待确定的符号找到对应的符号，从而成功生成可执行文件或者库文件。</p>
+<h5>找不到符号</h5>
+<p>这个问题估计大部分同学在自己编译代码的时候都碰到过，绝大多数情况下都是编译时配置出错，没有告诉链接器应该去链接某个文件，而导致找不到符号。然而在有时候已经完全配置好了，还是会出现这种情况，即我知道这个库的符号全在这个目标文件中或者这个静态库或者这个动态库中，但是编译器还是报错说找不到符号。这种情况带出了一些更深层次的问题。</p>
+<h5>C 与 C++ 其实并没有想象中那么和谐</h5>
+<p>我们都知道 C++ 可以重载函数，类似于下面的这段代码。</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">int</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kt">void</span> <span class="nf">foo</span><span class="p">(</span><span class="kt">float</span> <span class="n">x</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="mf">0.f</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>C 中是不允许函数重名的，但是 C++ 中可以通过不同的输入参数类型和类型次序来重载同名函数，暂且不论重载带来的好处和坑，C++ 能这么做是因为 C++ 编译器会重写每个函数最后生成的符号，上面两个函数在编译完后会生成不同的符号，这样一来，对链接器来说其实函数名相同已经没有什么意义了。</p>
+<div class="highlight"><pre><span></span><span class="n">vagrant</span><span class="nv">@trusty64</span><span class="err">:</span><span class="o">~/</span><span class="n">test</span><span class="err">$</span><span class="w"> </span><span class="n">cat</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">cpp</span><span class="w"></span>
+<span class="n">void</span><span class="w"> </span><span class="n">foo</span><span class="p">(</span><span class="nc">int</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="err">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span><span class="w"></span>
+<span class="err">}</span><span class="w"></span>
+
+<span class="n">void</span><span class="w"> </span><span class="n">foo</span><span class="p">(</span><span class="nc">float</span><span class="w"> </span><span class="n">x</span><span class="p">)</span><span class="w"> </span><span class="err">{</span><span class="w"></span>
+<span class="w">    </span><span class="n">x</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.</span><span class="n">f</span><span class="p">;</span><span class="w"></span>
+<span class="err">}</span><span class="w"></span>
+<span class="n">vagrant</span><span class="nv">@trusty64</span><span class="err">:</span><span class="o">~/</span><span class="n">test</span><span class="err">$</span><span class="w"> </span><span class="n">gcc</span><span class="w"> </span><span class="o">-</span><span class="n">c</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">cpp</span><span class="w"> </span><span class="o">-</span><span class="n">o</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">o</span><span class="w"></span>
+<span class="n">vagrant</span><span class="nv">@trusty64</span><span class="err">:</span><span class="o">~/</span><span class="n">test</span><span class="err">$</span><span class="w"> </span><span class="n">nm</span><span class="w"> </span><span class="n">a</span><span class="p">.</span><span class="n">o</span><span class="w"></span>
+<span class="mi">0000000000000010</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="n">_Z3foof</span><span class="w"></span>
+<span class="mi">0000000000000000</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="n">_Z3fooi</span><span class="w"></span>
+<span class="n">vagrant</span><span class="nv">@trusty64</span><span class="err">:</span><span class="o">~/</span><span class="n">test</span><span class="err">$</span><span class="w"></span>
+</pre></div>
+
+
+<p>我们可以看到 gcc 编译出来的符号已经跟函数名不一样了，符号包含了更多的信息，比如符号的类型（这个符号是个函数），和函数对应参数的类型，相当复杂。</p>
+<div class="highlight"><pre><span></span><span class="err">vagrant@trusty64:~/test$ cat a.c</span>
+<span class="err">void foo(int x) {</span>
+<span class="err">    x = 0;</span>
+<span class="err">}</span>
+<span class="err">vagrant@trusty64:~/test$ gcc -c a.c -o a.o</span>
+<span class="err">vagrant@trusty64:~/test$ nm a.o</span>
+<span class="err">0000000000000000 T foo</span>
+<span class="err">vagrant@trusty64:~/test$</span>
+</pre></div>
+
+
+<p>相对来说 C 代码编译出来的符号是和函数名是一致的，同时符号中也不区分变量和函数。</p>
+<p>以上的代码只是很简单的函数，如果加上命名空间，类函数等，编译器产生的符号会更加复杂，更加吓人，这也是为什么我们看到的链接出错中会有一长串的字符，因为 C++ 中的符号异常复杂，包含的信息太多。</p>
+<p>编译器对 C 和 C++ 代码的处理方式不同，导致两者采用完全不一样的符号命名机制，这样会造成很多链接时的问题，所有我们可以看到好多 C 语言库的头文件里会写下面这种代码。</p>
+<div class="highlight"><pre><span></span><span class="cp">#ifdef __cplusplus</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="p">{</span>
+<span class="cp">#endif</span>
+
+<span class="p">......</span>
+<span class="p">......</span>
+
+<span class="cp">#ifdef __cplusplus</span>
+<span class="p">}</span>
+<span class="cp">#endif</span>
+</pre></div>
+
+
+<p>通过这种方式告诉编译器，这个头文件的所有符号请按照 C 语言的规则进行生成，不要采用 C++ 那套符号重写机制。如果不采取这种措施，就会导致原本在库中是 <code>foo</code> 的符号被改写成 <code>_Z3fooi</code> 类似的形式而造成链接失败。</p>
+<p>以上这种问题本质上是编译器产生的符号于实际库中的符号不一致。C 和 C++ 不同的符号机制会导致这种情况，但是还有其他问题也会导致这种情况，事实上，一般 C 库的作者在这方面都考虑到了的，在头文件中设置宏是可以解决这种问题的，而且这个不需要使用库的人自行设定。</p>
+<h5>C++ 编译器中符号的兼容性</h5>
+<p>多数情况下，我们使用的第三方库都是库的提供者事先编译好的，这就带来了一个很大的隐患。同一个函数在库中的符号和我们编译器要寻找的符号可能不一致，这个问题在 MSVC 上尤为突出。除去动态库静态库的差异，针对相同编译器的不同版本，同一个函数可能生成的符号会不一样，这是最最坑爹的地方。看看 OpenCV 里 VC10，VC11，VC12 的各个目录就知道这个差异是非常大的。相对而言，gcc 不同版本之间的兼容性似乎就好很多。当然 C 的代码相对于 C++ 就好很多了，不可能出现这种坑爹的情况。</p>
+<h3>总结</h3>
+<p>胡说八道了一堆，希望能够帮助你理解 C/C++ 代码编译时出现的问题，从而针对性地寻求相应的解决方案。</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

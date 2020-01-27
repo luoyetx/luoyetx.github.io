@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Basic Mathematics in Neural Networks</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/nn-math.html" rel="bookmark"
+         title="Permalink to Basic Mathematics in Neural Networks">Basic Mathematics in Neural Networks</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2015-11-16T00:00:00+08:00">
+      Mon 16 November 2015
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Recently, I was reading the paper <a href="http://cogprints.org/5869/1/cnn_tutorial.pdf">Notes on Convolution Neural Networks</a>. The first part of the paper is talking about the traditional neural network, which is multi-layer fully connected network. It discusses the basic feature of multi-layer network and some formulas to present the feedforward pass and backpropagation pass. All the formulas are very simple but lack of the details about how things work. I am writing down this blog to record my derivation of these formulas.</p>
+<p>A single layer in traditional neural network can be defined by the input $x$, the output $u$, the weight $W$ and the bias $b$, which we have $x \in R^n$, $W \in R^{m \cdot n}$, $b \in R^m$ and $u \in R^m$. And a layer can be defined like a function below.</p>
+<p>$$
+u = W \cdot x + b
+$$</p>
+<p>We first need some derivative of this function which will be every helpful later. we first rewrite this function to each element of $u$.</p>
+<p>$$
+u_k = W_k \cdot x + b_k
+$$</p>
+<p>$W_k$ is the k-th row of weight matrix $W$. We need three partial derivative $\frac{\partial u_k}{\partial b}$, $\frac{\partial u_k}{\partial W}$ and $\frac{\partial u_k}{\partial x}$. We also need another parital derivative of the function $u_k = W_k \cdot f(x) + b_k$, and the partial derivative is $\frac{\partial u_k}{\partial x}$.</p>
+<p>The first term is $\frac{\partial u_k}{\partial b}$.</p>
+<p>$$
+\frac{\partial u_k}{\partial b_i} =
+    \begin{cases}
+    0 \quad if \quad i \neq k \
+    1 \quad if \quad i = k \
+    \end{cases}
+$$</p>
+<p>$$
+\frac{\partial u_k}{\partial b} =
+    \begin{bmatrix}
+    \frac{\partial u_k}{\partial b_1} \
+    . \
+    \frac{\partial u_k}{\partial b_k} \
+    . \
+    \frac{\partial u_k}{\partial b_m} \
+    \end{bmatrix} =
+    \begin{bmatrix}
+    0 \
+    . \
+    1 \
+    . \
+    0 \
+    \end{bmatrix} \in R^m
+$$</p>
+<p>which we have $1$ in $k$-th row.</p>
+<p>The second term is $\frac{\partial u_k}{\partial W}$.</p>
+<p>$$
+\frac{\partial u_k}{\partial W_i} =
+    \begin{cases}
+    0 \quad if \quad i \neq k \
+    x^T \quad if \quad i = k \
+    \end{cases}
+$$</p>
+<p>$$
+\frac{\partial u_k}{\partial W} =
+    \begin{bmatrix}
+    \frac{\partial u_k}{\partial W_1} \
+    . \
+    \frac{\partial u_k}{\partial W_k} \
+    . \
+    \frac{\partial u_k}{\partial W_m} \
+    \end{bmatrix} =
+    \begin{bmatrix}
+    0 \
+    . \
+    x^T \
+    . \
+    0 \
+    \end{bmatrix}
+        \in R^{m \cdot n}
+$$</p>
+<p>which we have $x^T$ in $k$-th row.</p>
+<p>The third term is $\frac{\partial u_k}{\partial x}$.</p>
+<p>$$
+\frac{\partial u_k}{\partial x} =
+    \begin{bmatrix}
+    \frac{\partial u_k}{\partial x_1} \
+    . \
+    . \
+    \frac{\partial u_k}{\partial x_n} \
+    \end{bmatrix} =
+    \begin{bmatrix}
+    W_k1 \
+    . \
+    . \
+    W_kn \
+    \end{bmatrix} = W_k^T \in R^{n}
+$$</p>
+<p>The fourth term is the partial derivative $\frac{\partial u_k}{\partial x}$ of function $u_k = W_k \cdot f(x) + b$.</p>
+<p>$$
+\frac{\partial u_k}{\partial x_i} = W_ki \cdot f^\prime(x_i)
+$$</p>
+<p>$$
+\frac{\partial u_k}{\partial x} = W_k^T \circ f^\prime(x)
+$$</p>
+<p>the notation $\circ$ here is an element wise multiplication.</p>
+<p>With the four derivative above, we can now derivate the backpropagation algorithm of traditioanl neural network. We define $l$-th layer's input $x^{l-1}$, the output $u^l$, the weights $W^l$ and the bias $b^l$, we also define the activation function $f$. And the neural network is combined with $L$ layers, and its input will be $x^0$ and the output will be $t = f(u^L)$. We also define the loss $E = \frac{1}{2} \cdot | t - y|_2^2$. The relationship of all these notations are listed below.</p>
+<p>$$
+x^{l} = f(u^l),\quad u^l = W^l \cdot x^{l-1} + b^l
+$$</p>
+<p>For gradient descent, we need to calculate $\frac{\partial E}{\partial W^l}$ and $\frac{\partial E}{\partial b^l}$, and it is all backpropagation algorithm about. We first calculate $\frac{\partial E}{\partial b^l}$ and define a notation $\delta$ to help calculate these two partial derivative.</p>
+<p>$$
+\delta^l = \frac{\partial E}{\partial u^l}
+$$</p>
+<p>for $l$-th layer, we are not care the dimension of the input and output, the infomation are all in the $x^l$ and $u^l$.</p>
+<p>to calculate $\frac{\partial E}{\partial b^l}$, we use $\frac{\partial u_k}{\partial b}$</p>
+<p>$$
+\frac{\partial E}{\partial b^l} = \sum_{k}\frac{\partial E}{\partial u_k^l} \cdot \frac{\partial u_k^l}{\partial b^l},
+$$</p>
+<p>$$
+= \sum_{k}\delta_k^l \cdot
+    \begin{bmatrix}
+    0 \
+    . \
+    1 \
+    . \
+    0 \
+    \end{bmatrix}
+$$</p>
+<p>$$
+= \sum_{k}
+    \begin{bmatrix}
+    0 \
+    . \
+    \delta_k^l \
+    . \
+    0 \
+    \end{bmatrix} = \delta^l
+$$</p>
+<p>to calculate $\frac{\partial E}{\partial W^l}$, we use $\frac{\partial u_k}{\partial W}$</p>
+<p>$$
+\frac{\partial E}{\partial W^l} = \sum_{k}\frac{\partial E}{\partial u^l_k} \cdot \frac{\partial u^l_k}{\partial W^l},
+$$</p>
+<p>$$
+= \sum_{k}\delta^l_k \cdot
+    \begin{bmatrix}
+    0 \
+    . \
+    {(x^{l-1})}^T \
+    . \
+    0 \
+    \end{bmatrix}
+$$</p>
+<p>$$
+= \sum_{k}
+    \begin{bmatrix}
+    0 \
+    . \
+    \delta^l_k \cdot {(x^{l-1})}^T \
+    . \
+    0 \
+    \end{bmatrix} = \delta^l \cdot {(x^{l-1})}^T
+$$</p>
+<p>Now, we can calculate the gradient for parameters $W^l$ and $b^l$, but they all depend on $\delta^l$ which is the core of backpropagation algorithm. And the algorithm is all about how to calculate $\delta^l$ from higher layer to lower layer, and the highest layer is the neural network's output layer which we put the loss $E$ in the algorithm.</p>
+<p>We first calculate $\delta^l$, using $\frac{\partial u_k}{\partial x}$ of function $u = W \cdot x + b$ and $\frac{\partial u_k}{\partial x}$ in function $u = W \cdot f(x) + b$, and we also have $u^{l+1} = W^{l+1} \cdot f(u^l) + b^{l+1}$</p>
+<p>$$
+\delta^l = \frac{\partial E}{\partial u^l} = \sum_{k}\frac{\partial E}{\partial u^{l+1}_k} \cdot \frac{\partial u^{l+1}_k}{\partial u^l}
+$$</p>
+<p>$$
+= \sum_{k}\delta^{l+1}_k \cdot {(W^{l+1}_k)}^T \circ f^\prime(u^l)
+$$</p>
+<p>$$
+= {(W^{l+1})}^T \cdot \delta^{l+1} \circ f^\prime(u^l)
+$$</p>
+<p>for the output layer, we have $t = f(u^L)$ and $E = \frac{1}{2} \cdot | t - y|_2^2$.</p>
+<p>$$
+\delta^L = \frac{\partial E}{\partial u^L} = f^\prime(u^L) \circ (t - y)
+$$</p>
+<p>Finally, we get all these notations solved, and given an input $x^0$ and a target $y$ attached to it, which we have $x^0 \in R^n$ and $y \in R^m$. We first forwrad neural network and get all $u^l$, then calculate the top layer $\delta^L$, after all, we backword the error from top to bottom to calculate $\delta^l$, meanwhile update $W^l$ and $u^l$. This is really how the backpropagation algorithm works.</p>
+<p>Let me put all notations together.</p>
+<p>feedforward</p>
+<p>$$
+x^{l} = f(u^l),\quad u^l = W^l \cdot x^{l-1} + b^l
+$$</p>
+<p>backpropagation</p>
+<p>$$
+\delta^L = f^\prime(u^L) \circ (t - y)
+$$</p>
+<p>$$
+\delta^l = {(W^{l+1})}^T \cdot \delta^{l+1} \circ f^\prime(u^l)
+$$</p>
+<p>gradient of parameters</p>
+<p>$$
+\frac{\partial E}{\partial W^l} = \delta^l \cdot {(x^{l-1})}^T
+$$</p>
+<p>$$
+\frac{\partial E}{\partial b^l} = \delta^l
+$$</p>
+<p>That's all.</p>
+<h3>References</h3>
+<ul>
+<li><a href="http://cogprints.org/5869/1/cnn_tutorial.pdf">Notes on Convolution Neural Networks</a></li>
+</ul>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

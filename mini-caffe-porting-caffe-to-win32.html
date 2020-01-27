@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Mini-Caffe: Porting Caffe to WIN32</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/mini-caffe-porting-caffe-to-win32.html" rel="bookmark"
+         title="Permalink to Mini-Caffe: Porting Caffe to WIN32">Mini-Caffe: Porting Caffe to WIN32</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2015-07-14T00:00:00+08:00">
+      Tue 14 July 2015
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/technology.html">Technology</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Recently, Our team has slowly dived to Deep Learning. We did a lot of works relatived to Deep Learning and Computer Vision. At first, we used traditional way to deal with our cv problems but these days, we turned to Convolutional Neural Network and Deep Learning for a better performance in face of our cv problems. Actually, CNN and DL has achieved the state-of-the-art of performance at various computer vision problems, and has been heavily studied in these days. I think our team starts to use CNN and DL to face our problems is very smart, and we should stick to DL for our future cv-related problems.</p>
+<p>As we all konw, nowadays, DL has caused a widespread concern due to its extremely good performance compared with traditional ways. DL is a part of Machine Leaning and CNN is a part of DL. CNN is very suitable for computer vision(images). Because of Convolution Layer defined in CNN, 2-dimension input is allowed in CNN and CNN is a very powerful tool to deal with image-related machine learning tasks. Local connection and shared weight simplifies the neural network structure and makes it much easier to train the network. The Pooling Layer makes the network much more robust to the input. CNN could still use SGD to train the network as other models use. Above of all is part of goodness from DL, what's more important is that there are many excellent open source projects out of the world from researchers. They are very easy to access on github or google code(will be closed in future). Caffe is one of them. It is implemented in C++ and will be every fast with CUDA and CuDNN if you have a GPU on your machine. Of cause, there are other CNN implementations such as Theano in Python, Torch7 in Lua and DeepLearning4J in Java etc. Our team adopt Caffe not only it is fast in C++ but also the Python binding and Matlab binding provided by Caffe. It is easy to use caffe-tool to train CNN model and write Python and C++ code to test or run the CNN model, it costs a few time to write code with Python or C++ to run the models.</p>
+<p>Installing Caffe on Linux or MacOSX is very easy, we just need to follow the document from Caffe and install all dependance it need and simply modify the Makefile to compile the Caffe source code, build Python binding is extremely easy with one command line provided by Caffe's Makefile. Beacause of the various Data Layer Caffe provides, there are many third party libraries needed to be install in order to compile the source code. But any way, who cares to install open source projects on Linux, they are far to much easy with package managers like apt-get and yum or others, we can even compile the third party libraries ourselves which costs little. The developers provide a stable version of Caffe running on Linux or Unix, but doesn't provide Windows support. Acctually, I'm strongly suggest you to deploy your Caffe enviroment on Linux Server with GPU supported. But we may develop our code on Windows or we may want to run our Caffe supported projects on Windows. It's a pity that official Caffe currently can not run on Windows. The community has develop an unofficial version of Caffe that can be installed and run on Windows, the project is <a href="https://github.com/niuzhiheng/caffe">here</a>. There are also other different solutions make Caffe run on Windows, but all these projects attempt to make full Caffe environment run on Windows, they need all third party libraries to be installed which they may compile themselves or the a pre-compiled version. These projects are great since they make Caffe runnable on Windows but they are not the solution to the situation that our team faced, actually, they are super solution to our situation, all works I did is base on these projects and make some little changes that make Caffe more smaller and easier to run on Windows.</p>
+<p>As I mentioned above, projects out there are aiming to give a full environment of Caffe on Windows. They are more likely wanting to train the Caffe models on Windows, so they porting all DataLayer of Caffe since it is important for CNN to support various data format as input(Like HDF5, LMDB, LevelDB etc). But our team is just wanting a test environment of Caffe on windows, we still train our CNN models on Linux, and all we need is a MemoryLayer in Caffe to read CNN's input from memory. So, I remove all other DataLayers in Caffe which also reduce the number of third party libraries we need(actually, most of third party libraries needed is to support various DataLayer). Since I remove many DataLayer source code, we only need <a href="http://opencv.org/">OpenCV</a>, <a href="http://www.boost.org/">Boost</a>, <a href="https://github.com/google/protobuf">protobuf</a>, <a href="https://github.com/google/glog">glog</a> and <a href="https://github.com/gflags/gflags">gflags</a>, and these libraries are very easy to install on Windows whether we can compile ourselves or install an pre-compiled version. After install the third party libraries, we can compile Caffe source code and get the runtime core of Caffe working.</p>
+<p>I have created a github project <a href="https://github.com/luoyetx/mini-caffe">here</a>. It remove all the source code that not needed for Caffe's runtime core, which including various DataLayer source code, extra tools like <code>train.cpp</code> and some scripts for handling or preprocessing data. I also remove Matlab binding code but I still keep the Python binding code since I use Python a lot. I have not build Python binding due to the usage way on Windows, it still useful but not has much signification on Windows.</p>
+<p>The project is working and our team now can develop and test Caffe-relative projects on Windows, otherwise, we usually develop on Windows and test on Linux Server which has a lot of trouble and unconvenient in this way.</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

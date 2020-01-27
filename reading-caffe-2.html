@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Caffe 源码阅读 Blob</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/reading-caffe-2.html" rel="bookmark"
+         title="Permalink to Caffe 源码阅读 Blob">Caffe 源码阅读 Blob</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2015-10-31T00:00:00+08:00">
+      Sat 31 October 2015
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Blob 在 Caffe 中扮演了重要的角色，用于存储数据和网络参数，同时也在 CPU 和 GPU 之间做了数据同步。Blob 原本在 Caffe 中被表示为一个 4 维数组 (num x channel x height x width)，现在可以表示多维数组，最高维数由宏 <code>kMaxBlobAxes</code> 确定，目前 blob.hpp 中设置了 <code>const int kMaxBlobAxes = 32;</code>。Blob 类的代码主要集中在 blob.hpp 和 blob.cpp 中。</p>
+<h3>数据与相关操作函数</h3>
+<p>Blob 类主要包括如下成员</p>
+<div class="highlight"><pre><span></span><span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">SyncedMemory</span><span class="o">&gt;</span> <span class="n">data_</span><span class="p">;</span> <span class="c1">// data 数据</span>
+<span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">SyncedMemory</span><span class="o">&gt;</span> <span class="n">diff_</span><span class="p">;</span> <span class="c1">// diff 数据</span>
+<span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">SyncedMemory</span><span class="o">&gt;</span> <span class="n">shape_data_</span><span class="p">;</span> <span class="c1">// 每一维数据的大小</span>
+<span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;</span> <span class="n">shape_</span><span class="p">;</span> <span class="c1">// 跟 shape_data_ 一样</span>
+<span class="kt">int</span> <span class="n">count_</span><span class="p">;</span> <span class="c1">// 当前容纳的数据大小</span>
+<span class="kt">int</span> <span class="n">capacity_</span><span class="p">;</span> <span class="c1">// 最大能够容纳的数据大小</span>
+</pre></div>
+
+
+<p>其中 SyncedMemory 主要用来实现数据在 CPU 和 GPU 上的管理。同时 Blob 类提供一组函数来操作这些数据。</p>
+<div class="highlight"><pre><span></span><span class="k">const</span> <span class="n">Dtype</span><span class="o">*</span> <span class="nf">cpu_data</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+<span class="kt">void</span> <span class="nf">set_cpu_data</span><span class="p">(</span><span class="n">Dtype</span><span class="o">*</span> <span class="n">data</span><span class="p">);</span>
+<span class="k">const</span> <span class="kt">int</span><span class="o">*</span> <span class="nf">gpu_shape</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+<span class="k">const</span> <span class="n">Dtype</span><span class="o">*</span> <span class="nf">gpu_data</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+<span class="k">const</span> <span class="n">Dtype</span><span class="o">*</span> <span class="nf">cpu_diff</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+<span class="k">const</span> <span class="n">Dtype</span><span class="o">*</span> <span class="nf">gpu_diff</span><span class="p">()</span> <span class="k">const</span><span class="p">;</span>
+<span class="n">Dtype</span><span class="o">*</span> <span class="nf">mutable_cpu_data</span><span class="p">();</span>
+<span class="n">Dtype</span><span class="o">*</span> <span class="nf">mutable_gpu_data</span><span class="p">();</span>
+<span class="n">Dtype</span><span class="o">*</span> <span class="nf">mutable_cpu_diff</span><span class="p">();</span>
+<span class="n">Dtype</span><span class="o">*</span> <span class="nf">mutable_gpu_diff</span><span class="p">();</span>
+</pre></div>
+
+
+<p>我们可以通过这些函数拿到 Blob 内部的数据包括修改 Blob 的内部数据。其中的 Dtype 是泛型类型，在定义 Blob 变量时设置的，一般为 float 或者 double。</p>
+<p>Blob 类在内部所存储的数据是一块连续的内存，为了表示多维数组，shape_ 和 shape_data_ 记录了每一维的大小，这样就能够很轻松地从给出的坐标中计算出 offset 从而得到那个点的数据。由于 Blob 主要还是用来表示 4 维数组 (最初就是这样的)，Blob 类中仍使用了 <code>int num(); int channels(); int height(); int width();</code> 这些函数，其实 num 等价于 shape()[0]，channels 等价于 shape()[1]，height 等价于 shape()[2]，width 等价于 shape()[3]。计算 offset 时可以使用这四个数字或者直接给出坐标。</p>
+<div class="highlight"><pre><span></span><span class="kt">int</span> <span class="nf">offset</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">n</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">c</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">w</span> <span class="o">=</span> <span class="mi">0</span><span class="p">);</span>
+<span class="kt">int</span> <span class="nf">offset</span><span class="p">(</span><span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">indices</span><span class="p">);</span>
+</pre></div>
+
+
+<p>有了 Blob 提供的这组函数和上一组函数，我们就可以轻易地操作 Blob 内部的数据了。</p>
+<h3>动态多维数组</h3>
+<p>Blob 类可以动态改变数组的尺寸，当拓展数组导致原有内存空间不足以存放下数据时 (count_ &gt; capacity_)，就会重新分配内存。Blob 提供了一组 Reshape 函数来完成这个功能。</p>
+<div class="highlight"><pre><span></span><span class="kt">void</span> <span class="nf">Reshape</span><span class="p">(</span><span class="k">const</span> <span class="kt">int</span> <span class="n">num</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">channels</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">height</span><span class="p">,</span> <span class="k">const</span> <span class="kt">int</span> <span class="n">width</span><span class="p">);</span> <span class="c1">// Deprecated</span>
+<span class="kt">void</span> <span class="nf">Reshape</span><span class="p">(</span><span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">shape</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">Reshape</span><span class="p">(</span><span class="k">const</span> <span class="n">BlobShape</span><span class="o">&amp;</span> <span class="n">shape</span><span class="p">);</span>
+<span class="kt">void</span> <span class="nf">ReshapeLike</span><span class="p">(</span><span class="k">const</span> <span class="n">Blob</span><span class="o">&amp;</span> <span class="n">other</span><span class="p">);</span>
+</pre></div>
+
+
+<p>Blob 类在初始化时并没有分配内存，也是通过调用 Reshape 来分配内存的。</p>
+<div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Dtype</span><span class="o">&gt;</span>
+<span class="kt">void</span> <span class="n">Blob</span><span class="o">&lt;</span><span class="n">Dtype</span><span class="o">&gt;::</span><span class="n">Reshape</span><span class="p">(</span><span class="k">const</span> <span class="n">vector</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">&gt;&amp;</span> <span class="n">shape</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">CHECK_LE</span><span class="p">(</span><span class="n">shape</span><span class="p">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">kMaxBlobAxes</span><span class="p">);</span> <span class="c1">// 检查维数</span>
+  <span class="n">count_</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// 用于计算新的多维数组的大小</span>
+  <span class="n">shape_</span><span class="p">.</span><span class="n">resize</span><span class="p">(</span><span class="n">shape</span><span class="p">.</span><span class="n">size</span><span class="p">());</span> <span class="c1">// 更新维数</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">shape_data_</span> <span class="o">||</span> <span class="n">shape_data_</span><span class="o">-&gt;</span><span class="n">size</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">shape</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">))</span> <span class="p">{</span>
+    <span class="c1">// shape_data_ 未初始化或者内存太小</span>
+    <span class="n">shape_data_</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="k">new</span> <span class="n">SyncedMemory</span><span class="p">(</span><span class="n">shape</span><span class="p">.</span><span class="n">size</span><span class="p">()</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">int</span><span class="p">)));</span>
+  <span class="p">}</span>
+  <span class="kt">int</span><span class="o">*</span> <span class="n">shape_data</span> <span class="o">=</span> <span class="k">static_cast</span><span class="o">&lt;</span><span class="kt">int</span><span class="o">*&gt;</span><span class="p">(</span><span class="n">shape_data_</span><span class="o">-&gt;</span><span class="n">mutable_cpu_data</span><span class="p">());</span>
+  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">shape</span><span class="p">.</span><span class="n">size</span><span class="p">();</span> <span class="o">++</span><span class="n">i</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">CHECK_GE</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="mi">0</span><span class="p">);</span>
+    <span class="n">CHECK_LE</span><span class="p">(</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">INT_MAX</span> <span class="o">/</span> <span class="n">count_</span><span class="p">)</span> <span class="o">&lt;&lt;</span> <span class="s">&quot;blob size exceeds INT_MAX&quot;</span><span class="p">;</span>
+    <span class="n">count_</span> <span class="o">*=</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="n">shape_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+    <span class="n">shape_data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">];</span>
+  <span class="p">}</span>
+  <span class="k">if</span> <span class="p">(</span><span class="n">count_</span> <span class="o">&gt;</span> <span class="n">capacity_</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// 内存不够</span>
+    <span class="n">capacity_</span> <span class="o">=</span> <span class="n">count_</span><span class="p">;</span>
+    <span class="n">data_</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="k">new</span> <span class="n">SyncedMemory</span><span class="p">(</span><span class="n">capacity_</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">Dtype</span><span class="p">)));</span>
+    <span class="n">diff_</span><span class="p">.</span><span class="n">reset</span><span class="p">(</span><span class="k">new</span> <span class="n">SyncedMemory</span><span class="p">(</span><span class="n">capacity_</span> <span class="o">*</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">Dtype</span><span class="p">)));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3>SyncedMemory</h3>
+<p>Blob 事实上是对 SyncedMemory 的封装。SyncedMemory 完成了对内存的实际操作，包括数据在 CPU 和 GPU 上的同步。</p>
+<div class="highlight"><pre><span></span><span class="k">enum</span> <span class="n">SyncedHead</span> <span class="p">{</span> <span class="n">UNINITIALIZED</span><span class="p">,</span> <span class="n">HEAD_AT_CPU</span><span class="p">,</span> <span class="n">HEAD_AT_GPU</span><span class="p">,</span> <span class="n">SYNCED</span> <span class="p">};</span>
+
+<span class="kt">void</span><span class="o">*</span> <span class="n">cpu_ptr_</span><span class="p">;</span> <span class="c1">// cpu 数据</span>
+<span class="kt">void</span><span class="o">*</span> <span class="n">gpu_ptr_</span><span class="p">;</span> <span class="c1">// gpu 数据</span>
+<span class="kt">size_t</span> <span class="n">size_</span><span class="p">;</span> <span class="c1">// 数据大小</span>
+<span class="n">SyncedHead</span> <span class="n">head_</span><span class="p">;</span> <span class="c1">// 数据同步状态</span>
+<span class="kt">bool</span> <span class="n">own_cpu_data_</span><span class="p">;</span> <span class="c1">// 是否拥有当前 cpu 数据</span>
+<span class="kt">bool</span> <span class="n">cpu_malloc_use_cuda_</span><span class="p">;</span> <span class="c1">// 是否采用 CUDA 来分配 CPU 数据，默认不用</span>
+<span class="kt">bool</span> <span class="n">own_gpu_data_</span><span class="p">;</span> <span class="c1">// 是否拥有当前 gpu 数据</span>
+<span class="kt">int</span> <span class="n">gpu_device_</span><span class="p">;</span> <span class="c1">// gpu 数据所在的显卡号</span>
+</pre></div>
+
+
+<p>SyncedMemory 内部存放了两份数据，分别位于 CPU 和 GPU 上，用 cpu_ptr 和 gpu_ptr 表示。同时 SyncedMemory 也给出了一组函数来获取和设置实际数据。</p>
+<div class="highlight"><pre><span></span><span class="k">const</span> <span class="kt">void</span><span class="o">*</span> <span class="nf">cpu_data</span><span class="p">();</span>
+<span class="kt">void</span> <span class="nf">set_cpu_data</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">data</span><span class="p">);</span>
+<span class="k">const</span> <span class="kt">void</span><span class="o">*</span> <span class="nf">gpu_data</span><span class="p">();</span>
+<span class="kt">void</span> <span class="nf">set_gpu_data</span><span class="p">(</span><span class="kt">void</span><span class="o">*</span> <span class="n">data</span><span class="p">);</span>
+<span class="kt">void</span><span class="o">*</span> <span class="nf">mutable_cpu_data</span><span class="p">();</span>
+<span class="kt">void</span><span class="o">*</span> <span class="nf">mutable_gpu_data</span><span class="p">();</span>
+</pre></div>
+
+
+<p>head_ 表示了数据的同步状态，通过调用 <code>to_cpu()</code> 和 <code>to_gpu()</code> 来做同步。如果 head_ = UNINITIALIZED 则分配相应的内存。</p>
+<div class="highlight"><pre><span></span><span class="kr">inline</span> <span class="kt">void</span> <span class="n">SyncedMemory</span><span class="o">::</span><span class="n">to_cpu</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">head_</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="nl">UNINITIALIZED</span><span class="p">:</span>
+    <span class="n">CaffeMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cpu_ptr_</span><span class="p">,</span> <span class="n">size_</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cpu_malloc_use_cuda_</span><span class="p">);</span> <span class="c1">// 分配内存</span>
+    <span class="n">caffe_memset</span><span class="p">(</span><span class="n">size_</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cpu_ptr_</span><span class="p">);</span> <span class="c1">// 初始化为 0</span>
+    <span class="n">head_</span> <span class="o">=</span> <span class="n">HEAD_AT_CPU</span><span class="p">;</span>
+    <span class="n">own_cpu_data_</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">HEAD_AT_GPU</span><span class="p">:</span>
+<span class="cp">#ifndef CPU_ONLY</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">cpu_ptr_</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// 如果未初始化，则分配内存</span>
+      <span class="n">CaffeMallocHost</span><span class="p">(</span><span class="o">&amp;</span><span class="n">cpu_ptr_</span><span class="p">,</span> <span class="n">size_</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">cpu_malloc_use_cuda_</span><span class="p">);</span>
+      <span class="n">own_cpu_data_</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="c1">// 复制 GPU 数据到 CPU</span>
+    <span class="n">caffe_gpu_memcpy</span><span class="p">(</span><span class="n">size_</span><span class="p">,</span> <span class="n">gpu_ptr_</span><span class="p">,</span> <span class="n">cpu_ptr_</span><span class="p">);</span>
+    <span class="n">head_</span> <span class="o">=</span> <span class="n">SYNCED</span><span class="p">;</span>
+<span class="cp">#else</span>
+    <span class="n">NO_GPU</span><span class="p">;</span>
+<span class="cp">#endif</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">HEAD_AT_CPU</span><span class="p">:</span>
+  <span class="k">case</span> <span class="nl">SYNCED</span><span class="p">:</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kr">inline</span> <span class="kt">void</span> <span class="n">SyncedMemory</span><span class="o">::</span><span class="n">to_gpu</span><span class="p">()</span> <span class="p">{</span>
+<span class="cp">#ifndef CPU_ONLY</span>
+  <span class="k">switch</span> <span class="p">(</span><span class="n">head_</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">case</span> <span class="nl">UNINITIALIZED</span><span class="p">:</span>
+    <span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaGetDevice</span><span class="p">(</span><span class="o">&amp;</span><span class="n">gpu_device_</span><span class="p">));</span> <span class="c1">// 获取显卡号</span>
+    <span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">gpu_ptr_</span><span class="p">,</span> <span class="n">size_</span><span class="p">));</span> <span class="c1">// 在指定显卡上分配内存</span>
+    <span class="n">caffe_gpu_memset</span><span class="p">(</span><span class="n">size_</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">gpu_ptr_</span><span class="p">);</span> <span class="c1">// 初始化为 0</span>
+    <span class="n">head_</span> <span class="o">=</span> <span class="n">HEAD_AT_GPU</span><span class="p">;</span>
+    <span class="n">own_gpu_data_</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">HEAD_AT_CPU</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">gpu_ptr_</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">// 未初始化就在指定显卡上分配内存</span>
+      <span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaGetDevice</span><span class="p">(</span><span class="o">&amp;</span><span class="n">gpu_device_</span><span class="p">));</span>
+      <span class="n">CUDA_CHECK</span><span class="p">(</span><span class="n">cudaMalloc</span><span class="p">(</span><span class="o">&amp;</span><span class="n">gpu_ptr_</span><span class="p">,</span> <span class="n">size_</span><span class="p">));</span>
+      <span class="n">own_gpu_data_</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">caffe_gpu_memcpy</span><span class="p">(</span><span class="n">size_</span><span class="p">,</span> <span class="n">cpu_ptr_</span><span class="p">,</span> <span class="n">gpu_ptr_</span><span class="p">);</span> <span class="c1">// 复制数据</span>
+    <span class="n">head_</span> <span class="o">=</span> <span class="n">SYNCED</span><span class="p">;</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="k">case</span> <span class="nl">HEAD_AT_GPU</span><span class="p">:</span>
+  <span class="k">case</span> <span class="nl">SYNCED</span><span class="p">:</span>
+    <span class="k">break</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="cp">#else</span>
+  <span class="n">NO_GPU</span><span class="p">;</span>
+<span class="cp">#endif</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3>数据序列化</h3>
+<p>Blob 数据可以通过 Protobuf 来做相应的序列化操作，<code>ToProto</code> 和 <code>FromProto</code> 完成相应的序列化操作。</p>
+<div class="highlight"><pre><span></span><span class="kd">message</span> <span class="nc">BlobProto</span> <span class="p">{</span>
+  <span class="k">optional</span> <span class="n">BlobShape</span> <span class="na">shape</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>
+  <span class="k">repeated</span> <span class="kt">float</span> <span class="na">data</span> <span class="o">=</span> <span class="mi">5</span> <span class="p">[</span><span class="k">packed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">];</span>
+  <span class="k">repeated</span> <span class="kt">float</span> <span class="na">diff</span> <span class="o">=</span> <span class="mi">6</span> <span class="p">[</span><span class="k">packed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">];</span>
+  <span class="k">repeated</span> <span class="kt">double</span> <span class="na">double_data</span> <span class="o">=</span> <span class="mi">8</span> <span class="p">[</span><span class="k">packed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">];</span>
+  <span class="k">repeated</span> <span class="kt">double</span> <span class="na">double_diff</span> <span class="o">=</span> <span class="mi">9</span> <span class="p">[</span><span class="k">packed</span> <span class="o">=</span> <span class="kc">true</span><span class="p">];</span>
+
+  <span class="c1">// 4D dimensions -- deprecated.  Use &quot;shape&quot; instead.</span>
+  <span class="k">optional</span> <span class="kt">int32</span> <span class="na">num</span> <span class="o">=</span> <span class="mi">1</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">0</span><span class="p">];</span>
+  <span class="k">optional</span> <span class="kt">int32</span> <span class="na">channels</span> <span class="o">=</span> <span class="mi">2</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">0</span><span class="p">];</span>
+  <span class="k">optional</span> <span class="kt">int32</span> <span class="na">height</span> <span class="o">=</span> <span class="mi">3</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">0</span><span class="p">];</span>
+  <span class="k">optional</span> <span class="kt">int32</span> <span class="na">width</span> <span class="o">=</span> <span class="mi">4</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">0</span><span class="p">];</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3>小结</h3>
+<p>Caffe 通过 SyncedMemory 和 Blob 封装了底层数据，为 Caffe 框架上的其他组件提供最基础的数据抽象，后面的 Layer 参数，Net 参数以及 Solver 的参数等都是 Blob 数据，所以理解 Blob 抽象和管理数据的实现方式有助于后续 Caffe 源码的阅读，也是阅读 Caffe 源码的第一步。</p>
+<h3>参考资料</h3>
+<ul>
+<li><a href="https://github.com/BVLC/caffe">Caffe 源码</a></li>
+</ul>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

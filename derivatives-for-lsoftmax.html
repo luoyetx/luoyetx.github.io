@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Derivatives for L-Softmax</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/derivatives-for-lsoftmax.html" rel="bookmark"
+         title="Permalink to Derivatives for L-Softmax">Derivatives for L-Softmax</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2017-05-03T00:00:00+08:00">
+      Wed 03 May 2017
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>This post records the derivatives for Large-Margin Softmax. The code can be found <a href="https://github.com/luoyetx/mx-lsoftmax">here</a>.</p>
+<h3>Basic</h3>
+<p>$$ w^Tx = |w||x|cos\theta $$</p>
+<h5>For $x$</h5>
+<p>$$ \frac{\partial |x|}{\partial x} = \frac{x}{|x|} $$</p>
+<p>$$
+\frac{\partial cos\theta}{\partial x} = \frac{\partial}{\partial x} \left( \frac{w^Tx}{|w||x|} \right) = \frac{w}{|w||x|} - \frac{(w^Tx)x}{|w||x|^3}
+$$</p>
+<p>$$ \frac{\partial sin^2\theta}{\partial x} = \frac{\partial}{\partial x} \left( 1-cos^2\theta \right) = -2cos\theta \frac{\partial cos\theta}{\partial x} $$</p>
+<p>$$ cos(m\theta) = \sum_{n=0}^{\lfloor \frac {m} {2} \rfloor} (-1)^n {m \choose {2n}} (cos\theta)^{m-2n} (sin^2\theta)^n $$</p>
+<p>$$
+\frac{\partial cos(m\theta)}{\partial x} = m(cos\theta)^{m-1} \frac{\partial cos\theta}{\partial x} + \sum_{n=1}^{\lfloor \frac{m}{2} \rfloor} (-1)^n{m \choose {2n}} \left[ n(cos\theta)^{m-2n}(sin^2\theta)^{n-1}\frac{\partial sin^2\theta}{\partial x} + (m-2n)(cos\theta)^{m-2n-1}(sin^2\theta)^n\frac{\partial cos\theta}{\partial x} \right]
+$$</p>
+<p>$$ f = (-1)^k|w||x|cos(m\theta) - 2k|w||x| = \left[ (-1)^kcos(m\theta) - 2k \right]|w||x| $$</p>
+<p>$$ \frac{\partial f}{\partial x} = \left[ (-1)^kcos(m\theta)-2k \right] \frac{|w|}{|x|}x + (-1)^k|w||x| \frac{\partial cos(m\theta)}{\partial x} $$</p>
+<p>$$
+\begin{align}
+\frac{\partial J}{\partial x_i} &amp;= \sum_{j,j \neq y_i} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial x_i} + \frac{\partial J}{\partial f_{i,y_i}}\cdot\frac{\partial f_{i,y_i}}{\partial x_i} \
+&amp;= \sum_{j}\frac{\partial J}{\partial f_{i,j}}\cdot w_j + \frac{\partial J}{\partial f_{i,y_i}}\left( \frac{\partial f_{i,y_i}}{\partial x_i} - w_{y_i} \right)
+\end{align}
+$$</p>
+<h5>For $w$</h5>
+<p>$$ \frac{\partial |w|}{\partial w} = \frac{w}{|w|} $$</p>
+<p>$$
+\frac{\partial cos\theta}{\partial w} = \frac{\partial}{\partial x} \left( \frac{w^Tx}{|w||x|} \right) = \frac{x}{|x||w|} - \frac{(w^Tx)w}{|x||w|^3}
+$$</p>
+<p>$$ \frac{\partial sin^2\theta}{w} = \frac{\partial}{\partial w} \left( 1-cos^2\theta \right) = -2cos\theta \frac{\partial cos\theta}{\partial w} $$</p>
+<p>$$ cos(m\theta) = \sum_{n=0}^{\lfloor \frac {m} {2} \rfloor} (-1)^n {m \choose {2n}} (cos\theta)^{m-2n} (sin^2\theta)^n $$</p>
+<p>$$
+\frac{\partial cos(m\theta)}{\partial w} = m(cos\theta)^{m-1} \frac{\partial cos\theta}{\partial w} + \sum_{n=1}^{\lfloor \frac{m}{2} \rfloor} (-1)^n{m \choose {2n}} \left[ n(cos\theta)^{m-2n}(sin^2\theta)^{n-1}\frac{\partial sin^2\theta}{\partial w} + (m-2n)(cos\theta)^{m-2n-1}(sin^2\theta)^n\frac{\partial cos\theta}{\partial w} \right]
+$$</p>
+<p>$$ f = (-1)^k|w||x|cos(m\theta) - 2k|w||x| = \left[ (-1)^kcos(m\theta) - 2k \right]|w||x| $$</p>
+<p>$$ \frac{\partial f}{\partial w} = \left[ (-1)^kcos(m\theta)-2k \right] \frac{|x|}{|w|}w + (-1)^k|w||x| \frac{\partial cos(m\theta)}{\partial w} $$</p>
+<p>$$
+\begin{align}
+\frac{\partial J}{\partial w_j} &amp;= \sum_{i,y_i \neq j} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial w_j} + \sum_{i,y_i=j} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial w_j} \
+&amp;= \sum_i \frac{\partial J}{\partial f_{i,j}}\cdot x_i + \sum_{i,y_i=j}\frac{\partial J}{\partial f_{i,j}}\cdot \left( \frac{\partial f_{i,j}}{\partial w_j} - x_i \right)
+\end{align}
+$$</p>
+<h3>HandWrite</h3>
+<p><img alt="lsoftmax-derivatives" src="https://luoyetx.github.io/images/2017/lsoftmax-derivatives.jpg"></p>
+<h3>Reference</h3>
+<ul>
+<li><a href="https://arxiv.org/pdf/1612.02295.pdf">Large-Margin Softmax Loss for Convolutional Neural Networks</a></li>
+<li><a href="https://github.com/luoyetx/mx-lsoftmax">luoyetx/mx-lsoftmax</a></li>
+</ul>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

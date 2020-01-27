@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Similarity Transform Between Face Shapes</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/face-similarity-transform.html" rel="bookmark"
+         title="Permalink to Similarity Transform Between Face Shapes">Similarity Transform Between Face Shapes</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2016-01-13T00:00:00+08:00">
+      Wed 13 January 2016
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Many face alignment algorithm need to perform a similarity transform between training shapes and a particular shape, which is always a mean shape over ground truth shapes. During the trainin status, the algorithm will do a similarity transform between target shape residual and mean shape. This is required to calculate the transform parameters between two shapes.</p>
+<p>When implementing the algorithm of 3000fps, I didn't really understand the math forumlas underneath. Today, I spend some time to study the math and find that <a href="https://en.wikipedia.org/wiki/Procrustes_analysis">Procrustes analysis</a> make things work.</p>
+<p>Let me describe the problem here. We need to perform a similarity transform such that $S_2 = cR(S_1)+t$. $S_2$ presents Shape2 and $S_1$ presents Shape1, $c$ is the scale ratio and $t$ is the bias, the most important term is $R$ which presents the rotation.</p>
+<p>$$
+R =
+\begin{bmatrix}
+cos\theta \quad -sin\theta \
+sin\theta \quad cos\theta \
+\end{bmatrix}
+$$</p>
+<p>We first need to normalize the Shape, which can minus the mean point of a Shape and divided by the scale. The mean point can be easily calculated but the scale is pretty not intuitive. Actually, we can use $|S|$ or $|S|^2$ as Shape scale, according to Procrustes analysis, it matters little. After this step, we get bias $t$ and scale ratio $c$, what's left is all about $R$.</p>
+<p>$R$ is a rotation matrix and we have many points to rotate. The target is to rotate the normalized Shape1 $S_1$ to normailzed Shape2 $S_2$, which will give us a minimum error between rotated normalized $S_1$ and normalized $S_2$. We can write a formula to present this. $[x_1, y_1, ...]$ presents the normalized $S_1$ and $[u_1, v_1, ...]$ presents the normalized $S_2$.</p>
+<p>$$
+R=
+\begin{bmatrix}
+a \quad -b \
+b \quad a \
+\end{bmatrix}
+$$</p>
+<p>$$
+E=\sum_{i}{||
+\begin{bmatrix}
+a \quad -b \
+b \quad a \
+\end{bmatrix} \cdot
+\begin{bmatrix}
+x_i \
+y_i \
+\end{bmatrix} -
+\begin{bmatrix}
+u_i \
+v_i \
+\end{bmatrix}
+||^2}
+$$</p>
+<p>In order to minimize $E$, we can use <a href="https://en.wikipedia.org/wiki/Least_squares">least squares</a> method to calculate parameter $a$ and $b$. Take the derivatives and make them all zeros will give us the answer.</p>
+<p>$$
+\frac{\partial E}{\partial a}=\sum_{i}{2x_i(ax_i-by_i-u_i)+2y_i(bx_i+ay_i-v_i)}=0
+$$</p>
+<p>$$
+\frac{\partial E}{\partial b}=\sum_{i}{-2y_i(ax_i-by_i-u_i)+2x_i(bx_i+ay_i-v_i)}=0
+$$</p>
+<p>Solving the equations above will give us $a$ and $b$.</p>
+<p>$$
+\begin{bmatrix}
+a \
+b \
+\end{bmatrix}=\frac{1}{\sum{x_i^2+y_i^2}}
+\begin{bmatrix}
+\sum{x_iu_i+y_iv_i} \
+\sum{x_iv_i-y_iu_i} \
+\end{bmatrix}
+$$</p>
+<p>$$
+tan\theta=\frac{b}{a}=\frac{\sum{x_iv_i-y_iu_i}}{\sum{x_iu_i+y_iv_i}}
+$$</p>
+<p>With $tan\theta$, we can get $R$.</p>
+<h3>References</h3>
+<ul>
+<li><a href="http://www.csdn123.com/html/mycsdn20140110/66/66ab6d874ba3ff8b570efe34dd65ed8a.html">Geometrical constraints</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Procrustes_analysis">Procrustes analysis</a></li>
+</ul>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

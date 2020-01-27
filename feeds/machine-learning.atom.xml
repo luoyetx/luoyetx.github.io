@@ -1,0 +1,1586 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>zhangjie - Machine Learning</title><link href="https://luoyetx.github.io/" rel="alternate"></link><link href="https://luoyetx.github.io/feeds/machine-learning.atom.xml" rel="self"></link><id>https://luoyetx.github.io/</id><updated>2017-05-03T00:00:00+08:00</updated><entry><title>Derivatives for L-Softmax</title><link href="https://luoyetx.github.io/derivatives-for-lsoftmax.html" rel="alternate"></link><published>2017-05-03T00:00:00+08:00</published><updated>2017-05-03T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2017-05-03:/derivatives-for-lsoftmax.html</id><summary type="html">&lt;p&gt;This post records the derivatives for Large-Margin Softmax. The code can be found &lt;a href="https://github.com/luoyetx/mx-lsoftmax"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;Basic&lt;/h3&gt;
+&lt;p&gt;$$ w^Tx = |w||x|cos\theta $$&lt;/p&gt;
+&lt;h5&gt;For $x$&lt;/h5&gt;
+&lt;p&gt;$$ \frac{\partial |x|}{\partial x} = \frac{x}{|x|} $$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial cos\theta}{\partial x} = \frac{\partial}{\partial x} \left( \frac{w^Tx}{|w||x|} \right) = \frac{w …&lt;/p&gt;</summary><content type="html">&lt;p&gt;This post records the derivatives for Large-Margin Softmax. The code can be found &lt;a href="https://github.com/luoyetx/mx-lsoftmax"&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;h3&gt;Basic&lt;/h3&gt;
+&lt;p&gt;$$ w^Tx = |w||x|cos\theta $$&lt;/p&gt;
+&lt;h5&gt;For $x$&lt;/h5&gt;
+&lt;p&gt;$$ \frac{\partial |x|}{\partial x} = \frac{x}{|x|} $$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial cos\theta}{\partial x} = \frac{\partial}{\partial x} \left( \frac{w^Tx}{|w||x|} \right) = \frac{w}{|w||x|} - \frac{(w^Tx)x}{|w||x|^3}
+$$&lt;/p&gt;
+&lt;p&gt;$$ \frac{\partial sin^2\theta}{\partial x} = \frac{\partial}{\partial x} \left( 1-cos^2\theta \right) = -2cos\theta \frac{\partial cos\theta}{\partial x} $$&lt;/p&gt;
+&lt;p&gt;$$ cos(m\theta) = \sum_{n=0}^{\lfloor \frac {m} {2} \rfloor} (-1)^n {m \choose {2n}} (cos\theta)^{m-2n} (sin^2\theta)^n $$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial cos(m\theta)}{\partial x} = m(cos\theta)^{m-1} \frac{\partial cos\theta}{\partial x} + \sum_{n=1}^{\lfloor \frac{m}{2} \rfloor} (-1)^n{m \choose {2n}} \left[ n(cos\theta)^{m-2n}(sin^2\theta)^{n-1}\frac{\partial sin^2\theta}{\partial x} + (m-2n)(cos\theta)^{m-2n-1}(sin^2\theta)^n\frac{\partial cos\theta}{\partial x} \right]
+$$&lt;/p&gt;
+&lt;p&gt;$$ f = (-1)^k|w||x|cos(m\theta) - 2k|w||x| = \left[ (-1)^kcos(m\theta) - 2k \right]|w||x| $$&lt;/p&gt;
+&lt;p&gt;$$ \frac{\partial f}{\partial x} = \left[ (-1)^kcos(m\theta)-2k \right] \frac{|w|}{|x|}x + (-1)^k|w||x| \frac{\partial cos(m\theta)}{\partial x} $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{align}
+\frac{\partial J}{\partial x_i} &amp;amp;= \sum_{j,j \neq y_i} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial x_i} + \frac{\partial J}{\partial f_{i,y_i}}\cdot\frac{\partial f_{i,y_i}}{\partial x_i} \
+&amp;amp;= \sum_{j}\frac{\partial J}{\partial f_{i,j}}\cdot w_j + \frac{\partial J}{\partial f_{i,y_i}}\left( \frac{\partial f_{i,y_i}}{\partial x_i} - w_{y_i} \right)
+\end{align}
+$$&lt;/p&gt;
+&lt;h5&gt;For $w$&lt;/h5&gt;
+&lt;p&gt;$$ \frac{\partial |w|}{\partial w} = \frac{w}{|w|} $$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial cos\theta}{\partial w} = \frac{\partial}{\partial x} \left( \frac{w^Tx}{|w||x|} \right) = \frac{x}{|x||w|} - \frac{(w^Tx)w}{|x||w|^3}
+$$&lt;/p&gt;
+&lt;p&gt;$$ \frac{\partial sin^2\theta}{w} = \frac{\partial}{\partial w} \left( 1-cos^2\theta \right) = -2cos\theta \frac{\partial cos\theta}{\partial w} $$&lt;/p&gt;
+&lt;p&gt;$$ cos(m\theta) = \sum_{n=0}^{\lfloor \frac {m} {2} \rfloor} (-1)^n {m \choose {2n}} (cos\theta)^{m-2n} (sin^2\theta)^n $$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial cos(m\theta)}{\partial w} = m(cos\theta)^{m-1} \frac{\partial cos\theta}{\partial w} + \sum_{n=1}^{\lfloor \frac{m}{2} \rfloor} (-1)^n{m \choose {2n}} \left[ n(cos\theta)^{m-2n}(sin^2\theta)^{n-1}\frac{\partial sin^2\theta}{\partial w} + (m-2n)(cos\theta)^{m-2n-1}(sin^2\theta)^n\frac{\partial cos\theta}{\partial w} \right]
+$$&lt;/p&gt;
+&lt;p&gt;$$ f = (-1)^k|w||x|cos(m\theta) - 2k|w||x| = \left[ (-1)^kcos(m\theta) - 2k \right]|w||x| $$&lt;/p&gt;
+&lt;p&gt;$$ \frac{\partial f}{\partial w} = \left[ (-1)^kcos(m\theta)-2k \right] \frac{|x|}{|w|}w + (-1)^k|w||x| \frac{\partial cos(m\theta)}{\partial w} $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{align}
+\frac{\partial J}{\partial w_j} &amp;amp;= \sum_{i,y_i \neq j} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial w_j} + \sum_{i,y_i=j} \frac{\partial J}{\partial f_{i,j}} \cdot \frac{\partial f_{i,j}}{\partial w_j} \
+&amp;amp;= \sum_i \frac{\partial J}{\partial f_{i,j}}\cdot x_i + \sum_{i,y_i=j}\frac{\partial J}{\partial f_{i,j}}\cdot \left( \frac{\partial f_{i,j}}{\partial w_j} - x_i \right)
+\end{align}
+$$&lt;/p&gt;
+&lt;h3&gt;HandWrite&lt;/h3&gt;
+&lt;p&gt;&lt;img alt="lsoftmax-derivatives" src="https://luoyetx.github.io/images/2017/lsoftmax-derivatives.jpg"&gt;&lt;/p&gt;
+&lt;h3&gt;Reference&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://arxiv.org/pdf/1612.02295.pdf"&gt;Large-Margin Softmax Loss for Convolutional Neural Networks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/luoyetx/mx-lsoftmax"&gt;luoyetx/mx-lsoftmax&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Reinforcement Learning Notes</title><link href="https://luoyetx.github.io/rl-notes.html" rel="alternate"></link><published>2017-03-09T00:00:00+08:00</published><updated>2017-03-09T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2017-03-09:/rl-notes.html</id><summary type="html">&lt;h1&gt;Learning note on &lt;a href="https://www.youtube.com/watch?v=lfHX2hHRMVQ"&gt;Markov Decision Process&lt;/a&gt;.&lt;/h1&gt;
+&lt;h5&gt;Markov Property&lt;/h5&gt;
+&lt;p&gt;$$ \mathbb{P}[S_{t+1}|S_t] = \mathbb{P}[S_{t+1}|S_1, ..., S_t] $$&lt;/p&gt;
+&lt;h5&gt;Markov Process or Markov Chain&lt;/h5&gt;
+&lt;p&gt;$\langle S, P \rangle$&lt;/p&gt;
+&lt;p&gt;$S$ is a finite set of states.&lt;/p&gt;
+&lt;p&gt;$P$ is a state transition probability matrix. $P_{ss'} = \mathbb{P}[S_{t …&lt;/p&gt;</summary><content type="html">&lt;h1&gt;Learning note on &lt;a href="https://www.youtube.com/watch?v=lfHX2hHRMVQ"&gt;Markov Decision Process&lt;/a&gt;.&lt;/h1&gt;
+&lt;h5&gt;Markov Property&lt;/h5&gt;
+&lt;p&gt;$$ \mathbb{P}[S_{t+1}|S_t] = \mathbb{P}[S_{t+1}|S_1, ..., S_t] $$&lt;/p&gt;
+&lt;h5&gt;Markov Process or Markov Chain&lt;/h5&gt;
+&lt;p&gt;$\langle S, P \rangle$&lt;/p&gt;
+&lt;p&gt;$S$ is a finite set of states.&lt;/p&gt;
+&lt;p&gt;$P$ is a state transition probability matrix. $P_{ss'} = \mathbb{P}[S_{t+1}=s'|S_t=s]$&lt;/p&gt;
+&lt;h3&gt;Markov Reward Process&lt;/h3&gt;
+&lt;p&gt;$\langle S, P, R, \gamma \rangle$&lt;/p&gt;
+&lt;p&gt;$S$ is a finite set of states.&lt;/p&gt;
+&lt;p&gt;$P$ is a state transition probability matrix. $P_{ss'} = \mathbb{P}[S_{t+1}=s'|S_t=s]$&lt;/p&gt;
+&lt;p&gt;$R$ is a reward function, $R_s = \mathbb{E}[R_{t+1}|S_t=s]$&lt;/p&gt;
+&lt;p&gt;$\gamma$ is a discount factor, $\gamma \in [0, 1]$&lt;/p&gt;
+&lt;h5&gt;Value Function&lt;/h5&gt;
+&lt;p&gt;value function $v(s)$ gives the long-term value of state $s$&lt;/p&gt;
+&lt;p&gt;$$ G_t = R_{t+1} + \gamma R_{t+2} + ... = \sum_{k=0}^\infty\gamma^k R_{t+k+1} $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+v(s) &amp;amp;=&amp;amp; \mathbb{E}[G_t|S_t=s] \
+&amp;amp;=&amp;amp; \mathbb{E}[R_{t+1} + \gamma(R_{t+2}+\gamma R_{t+3}+...)|S_t=s] \
+&amp;amp;=&amp;amp; \mathbb{E}[R_{t+1} + \gamma G_{t+1}|S_t=s] \
+&amp;amp;=&amp;amp; \mathbb{E}[R_{t+1} + \gamma v(S_{t+1})|S_t=s]
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;h5&gt;Bellman Equation for MRP&lt;/h5&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+v(s) &amp;amp;=&amp;amp; \mathbb{E}[R_{t+1} + \gamma v(S_{t+1})|S_t=s] \
+&amp;amp;=&amp;amp; R_s + \gamma \sum_{s' \in S}P_{ss'}v(s')
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;$$ v = R + \gamma P v $$&lt;/p&gt;
+&lt;h3&gt;Markov Decision Process&lt;/h3&gt;
+&lt;p&gt;$\langle S, A, P, R, \gamma \rangle$&lt;/p&gt;
+&lt;p&gt;$S$ is a finite set of states&lt;/p&gt;
+&lt;p&gt;$A$ is a finite set of actions&lt;/p&gt;
+&lt;p&gt;$P$ is state transition probability matrix, $P_{ss'}^a = \mathbb{P}[S_{t+1}=s'|S_t=s,A_t=a]$&lt;/p&gt;
+&lt;p&gt;$R$ is a reward function, $R_s^a = \mathbb{E}[R_{t+1}|S_t=s,A_t=a]$&lt;/p&gt;
+&lt;p&gt;$\gamma$ is a discount factor, $\gamma \in [0, 1]$&lt;/p&gt;
+&lt;h5&gt;Policy&lt;/h5&gt;
+&lt;p&gt;A &lt;em&gt;policy&lt;/em&gt; $\pi$ is a distribution over actions given states&lt;/p&gt;
+&lt;p&gt;$$ \pi(a|s) = \mathbb{P}[A_t=a|S_t=s] $$&lt;/p&gt;
+&lt;p&gt;$$ A_t \sim \pi(\cdot|s), \forall t \gt 0 $$&lt;/p&gt;
+&lt;p&gt;Given $M = \langle S, A, P, R, \gamma \rangle$ and policy $\pi$&lt;/p&gt;
+&lt;p&gt;$S_1, S_2, ...$ is a Markov process $\langle S, P^\pi \rangle$&lt;/p&gt;
+&lt;p&gt;$S_1, R_2, S_2, R_3, ...$ is a Markov reward process $\langle S, P^\pi, R^\pi, \gamma \rangle$&lt;/p&gt;
+&lt;p&gt;$$ P_{ss'}^\pi = \sum_{a \in A}\pi(a|s)P_{ss'}^a $$&lt;/p&gt;
+&lt;p&gt;$$ R_s^\pi = \sum_{a \in A}\pi(a|s)R_s^a $$&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;state-value&lt;/em&gt; function $v_\pi(s)$&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) = \mathbb{E}_\pi[G_t|S_t=s] $$&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;action-value&lt;/em&gt; function $q_\pi(s, a)$&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, a) = \mathbb{E}_\pi[G_t|S_t=s, A_t=a] $$&lt;/p&gt;
+&lt;h5&gt;Bellman Equation for value function&lt;/h5&gt;
+&lt;p&gt;$$ v_\pi(s) = \mathbb{E_\pi}[R_{t+1} + \gamma v_\pi(S_{t+1})|S_t=s] $$&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, a) = \mathbb{E_\pi}[R_{t+1} + \gamma q_\pi(S_{t+1}, A_{t+1})|S_t=s,A_t=a] $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_v-300x116.png" alt="" width="300" height="116" class="aligncenter size-medium wp-image-228" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) =  \sum_{a \in A}\pi(a|s)q_\pi(s, a) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_q-300x122.png" alt="" width="300" height="122" class="aligncenter size-medium wp-image-227" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s') $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_v-1-300x155.png" alt="" width="300" height="155" class="aligncenter size-medium wp-image-230" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) = \sum_{a \in A}\pi(a|s)(R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s')) $$&lt;/p&gt;
+&lt;p&gt;$$ v_\pi = R^\pi + \gamma P^\pi v_\pi $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_q-1-300x145.png" alt="" width="300" height="145" class="aligncenter size-medium wp-image-229" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a \sum_{a' \in A}\pi(a'|s')q_\pi(s', a') $$&lt;/p&gt;
+&lt;h5&gt;Optimal Value Function&lt;/h5&gt;
+&lt;p&gt;$$ v_\ast(s) = \max_{\pi}v_\pi(s) $$&lt;/p&gt;
+&lt;p&gt;$$ q_\ast(s, a) = \max_{\pi}q_\pi(s, a) $$&lt;/p&gt;
+&lt;p&gt;policy ordering&lt;/p&gt;
+&lt;p&gt;$$ \pi \gt \pi' \quad if v_\pi(s) \ge v_{\pi'}(s), \forall s $$&lt;/p&gt;
+&lt;p&gt;There exists an optimal policy $\pi_\ast$ that $\pi_\ast \ge \pi, \forall \pi$
+All optimal policies achieve the optimal value function, $v_{\pi_\ast}(s) = v_\ast(s)$
+All optimal policies achieve the optimal action value function, $q_{\pi_\ast}(s, a) = q_\ast(s, a)$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+\pi_\ast(a|s) =
+\begin{cases}
+1 \quad if a = \arg\max_{a \in A}q_\ast(s, a) \
+0 \quad otherwise
+\end{cases}
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_ov-300x117.png" alt="" width="300" height="117" class="aligncenter size-medium wp-image-234" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ v_\ast(s) = \max_{a}q_\ast(s, a) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_oq-300x127.png" alt="" width="300" height="127" class="aligncenter size-medium wp-image-232" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ q_\ast(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^av_\ast(s') $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_ov-1-300x147.png" alt="" width="300" height="147" class="aligncenter size-medium wp-image-235" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ v_\ast(s) = \max_{a}R_s^a + \gamma \sum_{s' \in S}P_{ss'}^av_\ast(s') $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl_mdp_oq-1-300x148.png" alt="" width="300" height="148" class="aligncenter size-medium wp-image-233" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ q_\ast(s, a) = R_s^a + \sum_{s' \in S}P_{ss'}^a\max_{a'}q_\ast(s', a') $$&lt;/p&gt;
+&lt;h3&gt;Summary&lt;/h3&gt;
+&lt;p&gt;$$ v_\pi(s) =  \sum_{a \in A}\pi(a|s)q_\pi(s, a) $$&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s') $$&lt;/p&gt;
+&lt;p&gt;$$ v_\ast(s) = \max_{a \in A}q_\ast(s, a) $$&lt;/p&gt;
+&lt;p&gt;$$ q_\ast(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^av_\ast(s') $$&lt;/p&gt;
+&lt;h1&gt;Learning note on &lt;a href="https://www.youtube.com/watch?v=Nd1-UUMVfz4"&gt;Planning by Dynamic Programming&lt;/a&gt;.&lt;/h1&gt;
+&lt;h5&gt;Bellman Expectation Equation&lt;/h5&gt;
+&lt;p&gt;$v_\pi(s)$, $q_\pi(s, a)$&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) = \sum_{a \in A}\pi(a|s)q_\pi(s, a) $$&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, a) = R_s^a + \sum_{s' \in S}P_{ss'}^a v_\pi(s') $$&lt;/p&gt;
+&lt;h5&gt;Bellman Optimality Equation&lt;/h5&gt;
+&lt;p&gt;$v_\ast(s) $, $q_\ast(s, a)$&lt;/p&gt;
+&lt;p&gt;$$ v_\ast(s) = \max_{a \in A}q_\ast(s, a) $$&lt;/p&gt;
+&lt;p&gt;$$ q_\ast(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\ast(s') $$&lt;/p&gt;
+&lt;h3&gt;Iterative Policy Evaluation&lt;/h3&gt;
+&lt;p&gt;Problem: evaluate a given policy $\pi$&lt;/p&gt;
+&lt;p&gt;Solution: iterative application of Bellman Expectation Equation&lt;/p&gt;
+&lt;p&gt;$v_1 \to v_2 \to ... \to v_\pi$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl2-ipe-300x157.png" alt="" width="300" height="157" class="aligncenter size-medium wp-image-271" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ v_{k+1}(s) = \sum_{a \in A}\pi(s, a)(R_s^a + \gamma \sum_{s' in S}P_{ss'}^a v_k(s')) $$&lt;/p&gt;
+&lt;h3&gt;Policy Iteration&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;Given an initial policy $\pi$&lt;/li&gt;
+&lt;li&gt;Evaluate the policy $\pi$&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;$$ v_\pi(s) = \mathbb{E_\pi}[R_{t+1}+\gamma R_{t+1} + ...|S_t=s] $$&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Improve the policy by acting greedily with respect $v_\pi$&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;$$ \pi' = greedy(v_\pi) $$&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Repeat step 2 and 3 until $\pi$ converges to $\pi^\ast$&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl-pi-300x174.png" alt="" width="300" height="174" class="aligncenter size-medium wp-image-275" /&gt;&lt;/p&gt;
+&lt;p&gt;for deterministic policy $a = \pi(s)$&lt;/p&gt;
+&lt;p&gt;$$ \pi'(s) = \arg\max_{a \in A}q_\pi(s, a) $$&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, \pi'(s)) = \arg\max_{a \in A}q_\pi(s, a) \ge q_\pi(s, \pi(s)) = v_\pi(s) $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+v_\pi(s) &amp;amp;\le&amp;amp; q_\pi(s, \pi'(s)) = \mathbb{E_{\pi'}}[R_{t+1}+\gamma v_\pi(S_{t+1})|S_t=s] \
+&amp;amp;\le&amp;amp; \mathbb{E_{\pi'}}[R_{t+1}+\gamma q_\pi(S_{t+1}, \pi'(S_{t+1}))|S_t=s] \
+&amp;amp;\le&amp;amp; \mathbb{E_{\pi'}}[R_{t+1}+\gamma R_{t+2} + \gamma^2 q_\pi(S_{t+2}. \pi'(S_{t+2}))|S_t=s] \
+&amp;amp;\le&amp;amp; \mathbb{E_{\pi'}}[R_{t+1}+\gamma R_{t+2} +...|S_t=s] = v_{\pi'}(s)
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) \le v_{\pi'}(s) $$&lt;/p&gt;
+&lt;p&gt;if improvements stop or converges&lt;/p&gt;
+&lt;p&gt;$$ q_\pi(s, \pi'(s)) = \max_{a \in A}q_\pi(s, a) = q_\pi(s, \pi(s)) = v_\pi(s) $$&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) = \max_{a \in A}q_\pi(s, a) $$&lt;/p&gt;
+&lt;p&gt;so $v_\pi(s)$ satisfies Bellman Optimality Equation&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) = v_\ast(s) $$&lt;/p&gt;
+&lt;h3&gt;Value Iteration&lt;/h3&gt;
+&lt;p&gt;Problem: find optimal policy $\pi$
+Solution: iterative application of Bellman Optimality Equaltion
+$v_1 \to v_2 \to ... \to v_\ast $
+Using synchronous backups&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;at each iteration k+1&lt;/li&gt;
+&lt;li&gt;for all states $s \in S$&lt;/li&gt;
+&lt;li&gt;update $v_{k+1}(s) = v_k(s')$&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;No explicit policy
+Intermediate value function $v_k$ may not correspond to any policy&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl2-ipe-300x157.png" alt="" width="300" height="157" class="aligncenter size-medium wp-image-271" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ v_{k+1}(s) = \max_{a \in A}R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_k(s') $$&lt;/p&gt;
+&lt;h3&gt;Summary&lt;/h3&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Problem&lt;/th&gt;
+&lt;th&gt;Bellman Equation&lt;/th&gt;
+&lt;th&gt;Algorithm&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;Prediction&lt;/td&gt;
+&lt;td&gt;Bellman Expectation Equation&lt;/td&gt;
+&lt;td&gt;Iterative Policy Evaluation&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Control&lt;/td&gt;
+&lt;td&gt;Bellman Expectation Equation + Greedy Policy Improvement&lt;/td&gt;
+&lt;td&gt;Policy Iteration&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;Control&lt;/td&gt;
+&lt;td&gt;Bellman Optimiality Equation&lt;/td&gt;
+&lt;td&gt;Value Iteration&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;h1&gt;Learning note on &lt;a href="https://www.youtube.com/watch?v=PnHCvfgC_ZA"&gt;Model-Free Prediction&lt;/a&gt;.&lt;/h1&gt;
+&lt;p&gt;Model-Free Prediction is about estimating the value function of an &lt;em&gt;unknown&lt;/em&gt; MDP.&lt;/p&gt;
+&lt;h3&gt;Monte-Carlo Reinforcement Learning&lt;/h3&gt;
+&lt;p&gt;learn $v_\pi$ from &lt;strong&gt;complete&lt;/strong&gt; episodes of experience under policy $\pi$.&lt;/p&gt;
+&lt;p&gt;$$ S_1, A_1, R_2, ..., S_k \sim \pi $$&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;return&lt;/em&gt; is the total discount reward&lt;/p&gt;
+&lt;p&gt;$$ G_t = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{T-1}R_T $$&lt;/p&gt;
+&lt;p&gt;$$ v_\pi(s) = \mathbb{E_\pi}[G_t|S_t=s] $$&lt;/p&gt;
+&lt;p&gt;Monte-Carlo policy evaluation uses &lt;em&gt;empirical mean&lt;/em&gt; return instead of &lt;em&gt;expected&lt;/em&gt;  return.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$N(s) \gets N(s) + 1$&lt;/li&gt;
+&lt;li&gt;$S(s) \gets S(s) + G_t$&lt;/li&gt;
+&lt;li&gt;$V(s) = S(s) / N(s)$&lt;/li&gt;
+&lt;li&gt;$V(s) \to v_\pi(s)$ as $N(s) \to \infty$&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;update $S(s)$ with return $G_t$&lt;/p&gt;
+&lt;p&gt;$$ N(S_t) \gets N(S_t) + 1 $$&lt;/p&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \frac{1}{N(S_t)}(G_t - V(S_t)) $$&lt;/p&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \alpha(G_t - V(S_t)) $$&lt;/p&gt;
+&lt;h3&gt;Temporal-Difference Learning&lt;/h3&gt;
+&lt;p&gt;learn directly from episodes of experience. episodes can be &lt;strong&gt;incomplete&lt;/strong&gt; using &lt;em&gt;bootstrapping&lt;/em&gt; and updates a guess towards guess.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;learn $v_\pi$ online from experience under policy $\pi$&lt;/li&gt;
+&lt;li&gt;$V(S_t) \gets V(S_t) + \alpha(G_t - V(S_t))$&lt;/li&gt;
+&lt;li&gt;replace &lt;em&gt;actual&lt;/em&gt; return $G_t$ with &lt;em&gt;estimated&lt;/em&gt; return $R_{t+1}+\gamma V(S_{t+1})$&lt;/li&gt;
+&lt;li&gt;$V(S_t) \gets V(S_t) + \alpha(R_{t+1} + \gamma V(S_{t+1}) - V(S_t))$&lt;/li&gt;
+&lt;li&gt;$R_{t+1}+\gamma V(S_{t+1})$ is called TD target&lt;/li&gt;
+&lt;li&gt;$\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$ is called TD error&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Driving Home Example: MC vs. TD&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-mcvstd-1024x503.png" alt="" width="660" height="324" class="aligncenter size-large wp-image-299" /&gt;&lt;/p&gt;
+&lt;h3&gt;Differences between MC and TD&lt;/h3&gt;
+&lt;p&gt;Return $G_t$ is unbiased estimate of $v_\pi(S_t)$ while True TD target $R_{t+1}+\gamma v_\pi(S_{t+1})$ is a biased estimate.&lt;/p&gt;
+&lt;p&gt;TD target is much lower variance than Return&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Return depends on &lt;strong&gt;many&lt;/strong&gt; random actions, transitions, rewards&lt;/li&gt;
+&lt;li&gt;TD target depends on &lt;strong&gt;one&lt;/strong&gt; random action, transition, reward&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;MC has high variance and zero bias&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Good convergence properties&lt;/li&gt;
+&lt;li&gt;Not every sensitive to  initial value&lt;/li&gt;
+&lt;li&gt;Very simple to understand and use&lt;/li&gt;
+&lt;li&gt;MC doesn't exploit Markov property, usually more efficient in non-Markov environments&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;TD has low variance and some bias&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Usually more efficient than MC&lt;/li&gt;
+&lt;li&gt;TD(0) converges to $v_\pi(s)$&lt;/li&gt;
+&lt;li&gt;More sensitive to initial value, because bootstrapping&lt;/li&gt;
+&lt;li&gt;TD exploits Markov property, usually more efficient in Markov environments&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;TD and MC both converge: $V(s) \to v_\pi(s)$ as $experience \to \infty$&lt;/p&gt;
+&lt;h5&gt;Monte-Carlo Backup&lt;/h5&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \alpha(G_t - V(S_t)) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-mc-1024x520.png" alt="" width="660" height="335" class="aligncenter size-large wp-image-301" /&gt;&lt;/p&gt;
+&lt;h5&gt;Temporal-Difference Backup&lt;/h5&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \alpha(R_{t+1} + \gamma V(S_{t+1}) - V(S_t)) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-td-1024x521.png" alt="" width="660" height="336" class="aligncenter size-large wp-image-302" /&gt;&lt;/p&gt;
+&lt;h5&gt;Dynamic Programming Backup&lt;/h5&gt;
+&lt;p&gt;$$ V(S_t) \gets \mathbb{E_\pi}[R_{t+1} + \gamma V(S_{t+1})] $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-dp-1024x532.png" alt="" width="660" height="343" class="aligncenter size-large wp-image-303" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bootstrapping&lt;/strong&gt;: update involves an estimate&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;MC doesn't boostrap&lt;/li&gt;
+&lt;li&gt;DP, TD bootstraps&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Sampling&lt;/strong&gt;: update samples an expectation&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;DP doesn't sample&lt;/li&gt;
+&lt;li&gt;MC, TD samples&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-view.png" alt="" width="996" height="705" class="aligncenter size-full wp-image-304" /&gt;&lt;/p&gt;
+&lt;h3&gt;$TD(\lambda)$&lt;/h3&gt;
+&lt;p&gt;n-step return&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-nstep.png" alt="" width="954" height="609" class="aligncenter size-full wp-image-306" /&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$n = 1$, $G_t^{(1)} = R_{t+1} + \gamma V(S_{t+1})$, TD&lt;/li&gt;
+&lt;li&gt;$n = 2$, $G_t^{(2)} = R_{t+1} + \gamma R_{t+2} + \gamma^2 V(S_{t+2})$&lt;/li&gt;
+&lt;li&gt;$n = \infty$, $G_t^{(\infty)} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{T-1} R_{T}$, MC&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;$$ G_t^{(n)} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n V(S_{t+n}) $$&lt;/p&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \alpha (G_t^{(n)} - V(S_t)) $$&lt;/p&gt;
+&lt;p&gt;$\lambda$ return combines all n-step return with weight $(1-\lambda)\lambda^{n-1}$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-lambda.png" alt="" width="589" height="687" class="aligncenter size-full wp-image-307" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-lambda-weight-1024x389.png" alt="" width="660" height="251" class="aligncenter size-large wp-image-308" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ G_t^\lambda = (1-\lambda)\sum_{n=1}^\infty \lambda^{n-1}G_t^{(n)} $$&lt;/p&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \alpha(G_t^\lambda - V(S_t)) $$&lt;/p&gt;
+&lt;p&gt;Forward view of $TD(\lambda)$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-lambda-forward-1024x280.png" alt="" width="660" height="180" class="aligncenter size-large wp-image-310" /&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Update value function towards the $\lambda$-return&lt;/li&gt;
+&lt;li&gt;Forward-view looks into the future to compute $G_t^\lambda$&lt;/li&gt;
+&lt;li&gt;Like MC, can only be computed from complete episodes&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Backward view of $TD(\lambda)$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl3-lambda-backward-1024x400.png" alt="" width="660" height="258" class="aligncenter size-large wp-image-313" /&gt;&lt;/p&gt;
+&lt;p&gt;Eligibility traces&lt;/p&gt;
+&lt;p&gt;$$ E_0(s) = 0 $$&lt;/p&gt;
+&lt;p&gt;$$ E_t(s) = \gamma \lambda E_{t-1}(s) + 1(S_t=s) $$&lt;/p&gt;
+&lt;p&gt;$$ \delta_t = R_{t+1} +\gamma V(S_{t+1}) - V(S_t) $$&lt;/p&gt;
+&lt;p&gt;$$ V(s) \gets V(s) + \alpha \delta_t E_t(s) $$&lt;/p&gt;
+&lt;p&gt;The sum of offline updates is identical for forward-view and backward view for $TD(\lambda)$&lt;/p&gt;
+&lt;p&gt;$$ \sum_{t=1}^{T}\alpha \delta_t E_t(s) = \sum_{t=1}^T \alpha (G_t^\lambda - V(S_t))1(S_t=s) $$&lt;/p&gt;
+&lt;h1&gt;Learning note on &lt;a href="https://www.youtube.com/watch?v=0g4j2k_Ggc4"&gt;Model Free Control&lt;/a&gt;.&lt;/h1&gt;
+&lt;p&gt;Model-Free Control is about optimizing the value function of an &lt;em&gt;unknown&lt;/em&gt; MDP.&lt;/p&gt;
+&lt;h3&gt;On-policy Monte-Carlo Control&lt;/h3&gt;
+&lt;p&gt;On-policy: Learn about policy $\pi$ from experience sampled from $\pi$. Off-policy: Learn about policy $\pi$ from experience sampled from $\mu$.&lt;/p&gt;
+&lt;p&gt;Greedy policy improvement over $Q(s, a)$ is model free&lt;/p&gt;
+&lt;p&gt;$$ \pi'(s) = \arg\max_{a \in A}Q(s, a) $$&lt;/p&gt;
+&lt;p&gt;$\epsilon$-Greedy Exploration&lt;/p&gt;
+&lt;p&gt;$$
+\pi'(a|s) =
+\begin{cases}
+\frac{\epsilon}{m} + 1 - \epsilon, &amp;amp; a^\ast = \arg\max_{a \in A}Q(s, a) \\
+\frac{\epsilon}{m}, &amp;amp; otherwise
+\end{cases}
+$$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-mcc.png" alt="" width="860" height="509" class="aligncenter size-full wp-image-328" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Every Episode&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Policy evaluation: Monte-Carlo policy evaluation, $Q \approx q_\pi$&lt;/li&gt;
+&lt;li&gt;Policy improvement: $\epsilon$-greedy improvement&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3&gt;On-policy TD Control&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;SARSA&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-sarsa-239x300.png" alt="" width="239" height="300" class="aligncenter size-medium wp-image-329" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ Q(S,A) \gets Q(S,A) + \alpha(R+\gamma Q(S',A') - Q(S,A)) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl-sarsa2.png" alt="" width="807" height="488" class="aligncenter size-full wp-image-330" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Every time step&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Policy evaluation: Sarsa, $Q \approx q_\pi$&lt;/li&gt;
+&lt;li&gt;Policy improvement: $\epsilon$-greedy improvement&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-sarsa-algo-1024x381.png" alt="" width="660" height="246" class="aligncenter size-large wp-image-331" /&gt;&lt;/p&gt;
+&lt;h3&gt;Sarsa$(\lambda)$&lt;/h3&gt;
+&lt;p&gt;n-Step Sarsa&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;$n=1$, $q_t^{(1)} = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})$, Sarsa&lt;/li&gt;
+&lt;li&gt;$n=2$, $q_t^{(2)} = R_{t+1} + \gamma R_{t+1} + \gamma^s Q(S_{t+2}, A_{t+2})$&lt;/li&gt;
+&lt;li&gt;$n=\infty$, $q_t^{(\infty)} = R_{t+1} +\gamma R_{t+2} + ... + \gamma^{T-1}R_T$&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;$$ q_t^{(n)} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1}R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n}) $$&lt;/p&gt;
+&lt;p&gt;$$ Q(S_t, A_t) \gets Q(S_t, A_t) + \alpha (q_t^{(n)} - Q(S_t, A_t)) $$&lt;/p&gt;
+&lt;p&gt;$\lambda$ return as TD$(\lambda)$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-sarsa-lambda.png" alt="" width="527" height="528" class="aligncenter size-full wp-image-333" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ q_t^\lambda = (1-\lambda)\sum_{n=1}^\infty \lambda^{n-1}q_t^{(n)} $$&lt;/p&gt;
+&lt;p&gt;Forward View&lt;/p&gt;
+&lt;p&gt;$$ Q(S_t, A_t) \gets Q(S_t, A_t) + \alpha (q_t^{\lambda} - Q(S_t, A_t)) $$&lt;/p&gt;
+&lt;p&gt;Backward View use &lt;strong&gt;eligibility traces&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;$$ E_0(s, a) = 0 $$&lt;/p&gt;
+&lt;p&gt;$$ E_t(s, a) = \gamma \lambda E_{t-1}(s, a) + 1(S_t=s, A_t=a) $$&lt;/p&gt;
+&lt;p&gt;$Q(s, a)$ is updated for every state $s$ and action $a$&lt;/p&gt;
+&lt;p&gt;$$ \delta_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t) $$&lt;/p&gt;
+&lt;p&gt;$$ Q(s, a) \gets Q(s, a) + \alpha \delta_t E_t(s, a) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-sarsa-lambda-algo-1024x582.png" alt="" width="660" height="375" class="aligncenter size-large wp-image-334" /&gt;&lt;/p&gt;
+&lt;p&gt;Sarsa $(\lambda)$ makes reward information flow backward to the path it follows&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-info-1024x332.png" alt="" width="660" height="214" class="aligncenter size-large wp-image-336" /&gt;&lt;/p&gt;
+&lt;h3&gt;Off-policy Learning&lt;/h3&gt;
+&lt;p&gt;targe policy $\pi$, behave policy $\mu$, with importance sampling&lt;/p&gt;
+&lt;p&gt;$$ V(S_t) \gets V(S_t) + \alpha (\frac{\pi(A_t|S_t)}{\mu(A_t|S_t)}(R_{t+1} + \gamma V(S_{t+1})) - V(S_t)) $$&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Q-Learning&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Consider off-policy learning of action-value $Q(s,a)$&lt;/li&gt;
+&lt;li&gt;No importance sampling required&lt;/li&gt;
+&lt;li&gt;Next action is chosen using behavior policy $A_{t+1} \sim \mu(\cdot|S_t)$&lt;/li&gt;
+&lt;li&gt;But consider alternative successor action $A' \sim \pi(\cdot|S_t)$&lt;/li&gt;
+&lt;li&gt;Update $Q(S_t, A_t)$ towards value of alternative action&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;$$ Q(S_t, A_t) \gets Q(S_t, A_t) + \alpha (R_{t+1} + \gamma Q(S_{t+1}, A') - Q(S_t, A_t)) $$&lt;/p&gt;
+&lt;p&gt;policy $\pi$ is &lt;strong&gt;greedy&lt;/strong&gt; w.r.t $Q(s,a)$, policy $\mu$ is $\epsilon$-greedy w.r.t $Q(s,a)$&lt;/p&gt;
+&lt;p&gt;$$ \pi(S_{t+1}) = \arg\max_{a'}Q(S_{t+1}, a') $$&lt;/p&gt;
+&lt;p&gt;$$ R_{t+1} + \gamma Q(S_{t+1}, A') = R_{t+1} + \max_{a'}\gamma Q(S_{t+1}, a') $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-q.png" alt="" width="301" height="280" class="aligncenter size-full wp-image-337" /&gt;&lt;/p&gt;
+&lt;p&gt;$$ Q(S,A) \gets Q(S,A) + \alpha(R + \gamma \sum_{a'}Q(S', a') - Q(S,A)) $$&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-q-algo-1024x347.png" alt="" width="660" height="224" class="aligncenter size-large wp-image-338" /&gt;&lt;/p&gt;
+&lt;h3&gt;Summary&lt;/h3&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-summary.png" alt="" width="1154" height="689" class="aligncenter size-full wp-image-341" /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="/images/2017/rl-notes/rl4-summary-2.png" alt="" width="1160" height="460" class="aligncenter size-full wp-image-342" /&gt;&lt;/p&gt;
+&lt;h3&gt;References&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html"&gt;RL Course by David Silver&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Way to implement custom Layer for Deep Learning framework</title><link href="https://luoyetx.github.io/implement-custom-layer.html" rel="alternate"></link><published>2017-01-07T00:00:00+08:00</published><updated>2017-01-07T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2017-01-07:/implement-custom-layer.html</id><summary type="html">&lt;p&gt;It's a common situation that we may need to implement a custom operator or layer for the Deep Learning framework we are using. When I mean implement a Layer or Operator for the framework, it's because the framework doesn't offer us the Operation we want. Sometimes, awesome paper appears with …&lt;/p&gt;</summary><content type="html">&lt;p&gt;It's a common situation that we may need to implement a custom operator or layer for the Deep Learning framework we are using. When I mean implement a Layer or Operator for the framework, it's because the framework doesn't offer us the Operation we want. Sometimes, awesome paper appears with strange functions that not supported by the framework. Sometimes, you want to change the behavior of traditional Layer implementation that can suits your demand. But mostly, you may want to create a new function to adapt it to the neural network that can help you get better result. As a result, you may need to create a Layer or Operator for the framework you use.&lt;/p&gt;
+&lt;h3&gt;Difference between Operator and Layer&lt;/h3&gt;
+&lt;p&gt;DL frameworks like &lt;a href="https://github.com/BVLC/caffe"&gt;Caffe&lt;/a&gt; and &lt;a href="http://torch.ch/"&gt;Torch&lt;/a&gt; use Layer for their basic network components while &lt;a href="https://github.com/dmlc/mxnet"&gt;MXNet&lt;/a&gt; and &lt;a href="https://www.tensorflow.org/"&gt;TensorFlow&lt;/a&gt; use Operator. There is little difference between Operator and Layer if you only focus on the implementation of Forward and Backward operation. Layer usually holds the learnable parameters by themselves while Operator only focus on the operation and let other part of the framework to consider about the parameters. We can abstract these two conception easily using the following Python code.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Layer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;an example for Layer&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;initializer&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;initialize learnable parameters&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        initializer: way to initialize parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;params&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+            &lt;span class="s1"&gt;&amp;#39;weight&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;initializer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;layer_weight&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt;
+        &lt;span class="p"&gt;}&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;forward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;perform forward&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        is_train: train or test&lt;/span&gt;
+&lt;span class="sd"&gt;        in_data: input data to this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        out_data: output data of this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;pass&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;backward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;perform backward&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        in_data: input data to this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        out_data: output data of this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        in_grad: gradient w.r.t. to in_data, backprop to former layers&lt;/span&gt;
+&lt;span class="sd"&gt;        out_grad: gradient w.r.t. to out_data, backprop from latter layers&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;pass&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;update&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;updater&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;update learnable parameters&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        updater: updater using different optimize strategy to update parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="n"&gt;updater&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;params&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;Operator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;an example for Operator&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="fm"&gt;__init__&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;initialize operator&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;pass&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;forward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;perform forward&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        is_train: train or test&lt;/span&gt;
+&lt;span class="sd"&gt;        in_data: input data to this layer including learnable parameters attached to this Operator&lt;/span&gt;
+&lt;span class="sd"&gt;        out_data: output data of this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;pass&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;backward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;perform backward&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        in_data: input data to this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        out_data: output data of this layer&lt;/span&gt;
+&lt;span class="sd"&gt;        in_grad: gradient w.r.t. to in_data, backprop to former layers&lt;/span&gt;
+&lt;span class="sd"&gt;        out_grad: gradient w.r.t. to out_data, backprop from latter layers&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;pass&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;infer_shape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_shape&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_shape&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;infer data shape of in_data and out_data&lt;/span&gt;
+&lt;span class="sd"&gt;        this helps framework to collect the information about operator&lt;/span&gt;
+
+&lt;span class="sd"&gt;        Parameters&lt;/span&gt;
+&lt;span class="sd"&gt;        ----------&lt;/span&gt;
+&lt;span class="sd"&gt;        in_shape: in_data shape&lt;/span&gt;
+&lt;span class="sd"&gt;        out_shape: out_data shape&lt;/span&gt;
+&lt;span class="sd"&gt;        &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+        &lt;span class="k"&gt;pass&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Since Layer holds the parameters themselves, they may need initializer and updater to initialize and update them. However, for most frameworks, Layer holds the parameters don't need to care about the parameters update, all they need to do is put the gradients w.r.t. parameters in some place where the framework can fetch. Actually, the initialization part can also do in this way. Somehow, there seems little difference between Layer and Operator, as Layer accesses its parameters in its own class member while Operator accesses the parameters through &lt;code&gt;in_data&lt;/code&gt;. But just because of this little difference, Layers are not easy (but still possible) to share parameters between each other while Operator can easily do it. It's important for RNN but not a common case for CNN. And that's a reason why frameworks like MXNet and TensorFlow use Operator instead of Layer as their basic network component.&lt;/p&gt;
+&lt;p&gt;Regardless of the difference between Layer and Operator, we still need to implement Forward and Backward for them. There's nothing difference or special. They go the same way. So we will use Layer for the next part, but it reads parameters from &lt;code&gt;in_data&lt;/code&gt; which like a Operator.&lt;/p&gt;
+&lt;h3&gt;Write down formulas&lt;/h3&gt;
+&lt;p&gt;Before we write any code, the first thing we need to do is to figure out all the formula that our Layer need. Let's consider a function which acts like a fully connected Layer, but will modify output result at some location. This function is adapted from paper &lt;a href="https://arxiv.org/pdf/1612.02295.pdf"&gt;Large-Margin Softmax Loss for Convolutional Neural Networks&lt;/a&gt;. The original function is kind of complex, I simplify it for the demonstration.&lt;/p&gt;
+&lt;p&gt;We define the function below.&lt;/p&gt;
+&lt;p&gt;$$ f_{i, j} = w_j^T \cdot x_i \quad j \neq y_i $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+f_{i, y_i} =
+\begin{cases}
+w_{y_i}^T \cdot x_i &amp;amp; w_{y_i}^T \cdot x_i &amp;lt; 0 \
+k * w_{y_i}^T \cdot x_i &amp;amp; w_{y_i}^T \cdot x_i &amp;gt; 0
+\end{cases}
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;It's the same thing as fully connected layer does except $f_{i, y_i}$ will be smaller than original one if $f_{i, yi} &amp;gt; 0$. What's more, $0 &amp;lt; k &amp;lt; 1$ is a hyperparameter of this Layer. We also omit bias term. Then we need to calculate the derivatives for $x$ and $w$.&lt;/p&gt;
+&lt;p&gt;$$ \frac {\partial f_{i, j}} {\partial x_i} = w_j \quad j \neq y_i $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+\frac {\partial f_{i, y_i}} {\partial x_i} =
+\begin{cases}
+w_{y_i} &amp;amp; w_{y_i} \cdot x_i &amp;lt; 0 \
+k * w_{y_i} &amp;amp; w_{y_i} \cdot x_i &amp;gt; 0
+\end{cases}
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;$w$ goes the same way.&lt;/p&gt;
+&lt;p&gt;$$ \frac {\partial f_{i, j}} {\partial w_j} = x_i \quad j \neq y_i $$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+\frac {\partial f_{i, y_i}} {\partial w_{y_i}} =
+\begin{cases}
+x_i &amp;amp; w_{y_i} \cdot x_i &amp;lt; 0 \
+k * x_i &amp;amp; w_{y_i} \cdot x_i &amp;gt; 0
+\end{cases}
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;It's time to bring Loss $J$ in. Then we can write gradient w.r.t. $x$ and $w$.&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+\frac {\partial J} {\partial x_i} &amp;amp;=&amp;amp; \sum_j \frac {\partial J} {\partial f_{i, j}} \frac {\partial f_{i, j}} {\partial x_i} \
+&amp;amp;=&amp;amp; \sum_{j, j \neq y_i} \frac {\partial J} {\partial f_{i, j}} w_j + \frac {\partial J} {\partial f_{i, y_i}} \frac {\partial f_{i, y_i}} {\partial x_i}
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\begin{eqnarray}
+\frac {\partial J} {\partial w_j} &amp;amp;=&amp;amp; \sum_i \frac {\partial J} {\partial f_{i, j}} \frac {\partial f_{i, j}} {\partial w_j} \
+&amp;amp;=&amp;amp; \sum_{i, j \neq y_i} \frac {\partial J} {\partial f_{i, j}} x_i + \sum_{i, j = y_i} \frac {\partial J} {\partial f_{i, y_i}} \frac {\partial f_{i, y_i}} {\partial w_{y_i}}
+\end{eqnarray}
+$$&lt;/p&gt;
+&lt;p&gt;With the above formulas, we now know how the Forward and Backward of our Layer should do.&lt;/p&gt;
+&lt;h3&gt;Implement the Layer&lt;/h3&gt;
+&lt;p&gt;Let's implement Forward and Backward in Python. It's your choice to pick a programming language to implement. I happens to use Python a lot and most deep learning framework have support for Python. It's a good idea to choose a language that the framework you use supports. You can easily wrap it after you finish the implementation. In this step, we really don't need to consider the performance of implementation as long as it can work.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;forword&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;X&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;W&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;W&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="c1"&gt;# traditional fully connected layer&lt;/span&gt;
+    &lt;span class="n"&gt;out&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;W&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;T&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="c1"&gt;# some modification&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;)):&lt;/span&gt;
+            &lt;span class="n"&gt;yi&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;yi&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;yi&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;*=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt;
+    &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;out&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;The Forward function is easy since it's normally a fully connected layer that may modify the output $f_{i,y_i}$. &lt;code&gt;is_train&lt;/code&gt; is used to indicate whether current context is train or test. We only want to modify $f_{i, y_i}$ during training.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;backward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;X&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;W&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;W&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;out&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;o_grad&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="c1"&gt;# traditional fully connected&lt;/span&gt;
+    &lt;span class="n"&gt;x_grad&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;o_grad&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;W&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;w_grad&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;o_grad&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;T&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;dot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="c1"&gt;# gradient w.r.t. X&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+        &lt;span class="n"&gt;yi&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+        &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;yi&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;x_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;W&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;yi&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;W&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;yi&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="c1"&gt;# gradient w.r.t W&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;W&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+            &lt;span class="n"&gt;yi&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;int&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;yi&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;and&lt;/span&gt; &lt;span class="n"&gt;out&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;yi&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="n"&gt;w_grad&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;k&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;X&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;x_grad&lt;/span&gt;
+    &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;W&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;w_grad&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Backward is a little tricky, we can reuse the output result of &lt;code&gt;out&lt;/code&gt; to know if we have modify $f_{i, y_i}$. Also we can reuse the result of fully connected layer's backward operation.&lt;/p&gt;
+&lt;p&gt;$$
+\frac {\partial J} {\partial x_i} = \sum_j \frac {\partial J} {\partial f_{i, j}} w_j + \frac {\partial J} {\partial f_{i, y_i}} (\frac {\partial f_{i, y_i}} {\partial x_i} - w_{y_i})
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\frac {\partial J} {\partial w_j} = \sum_i \frac {\partial J} {\partial f_{i, j}} x_i + \sum_{i, j = y_i} \frac {\partial J} {\partial f_{i, y_i}} (\frac {\partial f_{i, y_i}} {\partial w_{y_i}} - x_i)
+$$&lt;/p&gt;
+&lt;p&gt;the first part of two formulas is exactly what fully connected layer does.&lt;/p&gt;
+&lt;h3&gt;Gradient Check&lt;/h3&gt;
+&lt;p&gt;Once you have write done the code, gradient check is important for you to verify the correctness of your implementation. The key idea is below.&lt;/p&gt;
+&lt;p&gt;$$ f'(x) = \frac {f(x + \Delta x) - f(x - \Delta x)} {2 \Delta x} $$&lt;/p&gt;
+&lt;p&gt;The formula evaluate the derivative at &lt;code&gt;X&lt;/code&gt;. In this way, we can evaluate the gradient of data and parameter using Layer's Forward. We can also calculate this derivative using Layer's Backward we implement. For example, we can choose one element from &lt;code&gt;X&lt;/code&gt;, we call Layer's Forward and Backward, and get the gradient from &lt;code&gt;grad&lt;/code&gt; for this one element. Next, we modify this element to &lt;code&gt;x-eps&lt;/code&gt; and &lt;code&gt;x+eps&lt;/code&gt;, call Forward twice and get two &lt;code&gt;f&lt;/code&gt; values. then we can evaluate the gradient. The calculated and evaluated gradient can be different but shouldn't differ to much.&lt;/p&gt;
+&lt;p&gt;The problem here is what if my Layer doesn't output a single value but a multi-dimension array, and where comes the gradient w.r.t. my Layer's output. The key is to plug a loss function to the output of the Layer. The most simple loss function we can choose is the L2 function.&lt;/p&gt;
+&lt;p&gt;$$ J = \frac {1} {2} \sum_i x_i^2 $$&lt;/p&gt;
+&lt;p&gt;$J$ is easy to calculate and the derivative too.&lt;/p&gt;
+&lt;p&gt;$$ \frac {\partial J} {\partial x_i} = x_i $$&lt;/p&gt;
+&lt;p&gt;$$ \frac {\partial J} {\partial X} = X $$&lt;/p&gt;
+&lt;p&gt;Thus, we can simply plug in this loss function to whatever the output of your Layer may output. The following Python code show an easy way to do gradient check on a Layer.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;gradient_check&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;layer&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;#39;&amp;#39;&amp;#39;do gradient check for parameter X&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;#39;&amp;#39;&amp;#39;&lt;/span&gt;
+    &lt;span class="c1"&gt;# loss function&lt;/span&gt;
+    &lt;span class="n"&gt;loss_it&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;lambda&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;square&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sum&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;
+
+    &lt;span class="c1"&gt;# suppose X is a 2 dimension array&lt;/span&gt;
+    &lt;span class="n"&gt;eps&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;1e-4&lt;/span&gt;
+    &lt;span class="n"&gt;threshold&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;1e-2&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;range&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;]):&lt;/span&gt;
+            &lt;span class="c1"&gt;# calculate gradient&lt;/span&gt;
+            &lt;span class="n"&gt;layer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;forward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+            &lt;span class="n"&gt;layer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;backward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;gradient&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;in_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+            &lt;span class="c1"&gt;# evaluate gradient&lt;/span&gt;
+            &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;-=&lt;/span&gt; &lt;span class="n"&gt;eps&lt;/span&gt;
+            &lt;span class="n"&gt;layer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;forward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;J1&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;loss_it&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;X&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;eps&lt;/span&gt;
+            &lt;span class="n"&gt;layer&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;forward&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;is_train&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;in_data&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;out_data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="n"&gt;J2&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;loss_it&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;out_grad&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;output&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+            &lt;span class="n"&gt;gradient_expect&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;J2&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;J1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;eps&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+            &lt;span class="c1"&gt;# calculate relative error&lt;/span&gt;
+            &lt;span class="n"&gt;error&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;abs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gradient_expect&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;gradient&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;abs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gradient&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="nb"&gt;abs&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gradient_expect&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+            &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;error&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;threshold&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;gradient check failed on X[&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;, &lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;]&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;j&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+            &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                &lt;span class="nb"&gt;print&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;gradient check pass&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;You can refer to cs231n course note &lt;a href="http://cs231n.github.io/neural-networks-3/"&gt;here&lt;/a&gt; for more information about gradient check.&lt;/p&gt;
+&lt;h3&gt;Test within a toy model&lt;/h3&gt;
+&lt;p&gt;After your implementation pass the gradient check, you should put your Layer into the DL framework you use. This brings other important things in. How to develop a new Layer for the DL framework? Most DL frameworks shall have documents about how to write custom Layer or Operator. They also may offer a demonstration of writing the Layer in Python or C++. Read the document and the code, you also need to understand how the framework process the data and basic idea of how the framework run your Layer. If you want to write the code in C++/CUDA, the best way you can go is to read the source code of Layer implementation in the framework. They're the best examples you can refer to.&lt;/p&gt;
+&lt;p&gt;It's also important that you should use a small network and data set to verify the efficiency of your implementation. Sometimes, passing the gradient check doesn't really mean your Layer implementation is perfect. The gradient check can't cover all situation. There might be bugs that only happens in a rarely situation. Or for some of your Layer inputs, your implementation may have some numeric issue like float underflow which cause the result wrong. Since gradient check is not perfect, it's always a good idea to deploy your Layer implementation on a toy model and see if it works the way your want (at least it shouldn't give you the wrong result).&lt;/p&gt;
+&lt;h3&gt;Optimize your implementation&lt;/h3&gt;
+&lt;p&gt;Once you verify the correctness and efficiency of your Layer implementation, you may want to optimize it to get a better performance. Since most framework support using Python to implement the Layer, you can still stick to Python and optimize the code more vectorized. Then, you may want to implement it using CUDA which makes your Layer can run on GPUs. Nowadays, we depends so much on GPUs to run deep learning framework to train neural networks. You should learn some knowledge about &lt;a href="https://developer.nvidia.com/cuda-zone"&gt;CUDA&lt;/a&gt; if you want the implementation of your Layer gets better performance.&lt;/p&gt;
+&lt;h3&gt;Summary&lt;/h3&gt;
+&lt;p&gt;In a summary, If you need to implement a custom Layer for the deep learning framework, you should implement it using Python or some other language you are familiar and easy to debug. Do gradient check to verify the correctness of your implementation. Next, you need to put the Layer into the DL framework you use, this requires much that you also need to know how the framework handle and represent the Layer and Data. Train a toy network after your Layer can work with the framework to verify the efficiency. After all, if the performance is poor, you may need to optimize the Layer using CUDA which makes your Layer run on GPUs. You can take a look at &lt;a href="https://github.com/luoyetx/mx-lsoftmax"&gt;luoyetx/mx-lsoftmax&lt;/a&gt; for a reference. It's follow the pipeline I described above.&lt;/p&gt;
+&lt;h3&gt;References&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/dmlc/mxnet"&gt;MXNet&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/BVLC/caffe"&gt;Caffe&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://www.tensorflow.org/"&gt;TensorFlow&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://torch.ch/"&gt;Torch&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://cs231n.stanford.edu/"&gt;cs231n&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/luoyetx/mx-lsoftmax"&gt;mx-lsoftmax&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Caffe 源码阅读 Layer 加载机制</title><link href="https://luoyetx.github.io/reading-caffe-3.html" rel="alternate"></link><published>2016-02-04T00:00:00+08:00</published><updated>2016-02-04T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2016-02-04:/reading-caffe-3.html</id><summary type="html">&lt;p&gt;Caffe 中的 Layer 是神经网络 Net 的基本结构，Caffe 内部维护一个注册表用于查找特定 Layer 对应的工厂函数。很多同学在 Windows 下使用 Caffe 遇到的一个问题就是运行 Caffe 相关的代码时出现无法找到 Layer，但是这个问题不会在 Linux 平台上出现，这个问题跟编译器有关，同时也是跟 Caffe 注册 Layer 的机制有关。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;F0203&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;07.581297&lt;/span&gt; &lt;span class="mi"&gt;11524&lt;/span&gt; &lt;span class="n"&gt;layer_factory&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;hpp&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;78&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="n"&gt;Check&lt;/span&gt; &lt;span class="nl"&gt;failed&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;registry&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="n"&gt;vs&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;Unknown&lt;/span&gt; &lt;span class="n"&gt;layer&lt;/span&gt; &lt;span class="nl"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Convolution&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;known …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;Caffe 中的 Layer 是神经网络 Net 的基本结构，Caffe 内部维护一个注册表用于查找特定 Layer 对应的工厂函数。很多同学在 Windows 下使用 Caffe 遇到的一个问题就是运行 Caffe 相关的代码时出现无法找到 Layer，但是这个问题不会在 Linux 平台上出现，这个问题跟编译器有关，同时也是跟 Caffe 注册 Layer 的机制有关。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;F0203&lt;/span&gt; &lt;span class="mi"&gt;12&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;50&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;&lt;span class="mf"&gt;07.581297&lt;/span&gt; &lt;span class="mi"&gt;11524&lt;/span&gt; &lt;span class="n"&gt;layer_factory&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="nl"&gt;hpp&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;78&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="n"&gt;Check&lt;/span&gt; &lt;span class="nl"&gt;failed&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;registry&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt; &lt;span class="n"&gt;vs&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;Unknown&lt;/span&gt; &lt;span class="n"&gt;layer&lt;/span&gt; &lt;span class="nl"&gt;type&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;Convolution&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;known&lt;/span&gt; &lt;span class="nl"&gt;types&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;上面的错误是无法在注册表中找到 Convolution Layer 对应的工厂函数，程序直接崩溃。下面我们就来聊聊 Caffe 的 Layer 加载机制，以及为什么在 VC 下会出现这种问题。&lt;/p&gt;
+&lt;p&gt;Caffe 的 Layer 注册表其实就是一组键值对，key 为 Layer 的类型而 value 则对应其工厂函数。下面两组宏控制了 Layer 的注册动作。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#define REGISTER_LAYER_CREATOR(type, creator)                                  \&lt;/span&gt;
+&lt;span class="cp"&gt;  static LayerRegisterer&amp;lt;float&amp;gt; g_creator_f_##type(#type, creator&amp;lt;float&amp;gt;);     \&lt;/span&gt;
+&lt;span class="cp"&gt;  static LayerRegisterer&amp;lt;double&amp;gt; g_creator_d_##type(#type, creator&amp;lt;double&amp;gt;)    \&lt;/span&gt;
+
+&lt;span class="cp"&gt;#define REGISTER_LAYER_CLASS(type)                                             \&lt;/span&gt;
+&lt;span class="cp"&gt;  template &amp;lt;typename Dtype&amp;gt;                                                    \&lt;/span&gt;
+&lt;span class="cp"&gt;  shared_ptr&amp;lt;Layer&amp;lt;Dtype&amp;gt; &amp;gt; Creator_##type##Layer(const LayerParameter&amp;amp; param) \&lt;/span&gt;
+&lt;span class="cp"&gt;  {                                                                            \&lt;/span&gt;
+&lt;span class="cp"&gt;    return shared_ptr&amp;lt;Layer&amp;lt;Dtype&amp;gt; &amp;gt;(new type##Layer&amp;lt;Dtype&amp;gt;(param));           \&lt;/span&gt;
+&lt;span class="cp"&gt;  }                                                                            \&lt;/span&gt;
+&lt;span class="cp"&gt;  REGISTER_LAYER_CREATOR(type, Creator_##type##Layer)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;REGISTER_LAYER_CLASS&lt;/code&gt; 宏可以实现将特定 Layer 注册到全局注册表中，首先定义一个工厂函数用来产生 Layer 对象，然后调用 &lt;code&gt;REGISTER_LAYER_CREATOR&lt;/code&gt; 将工厂函数和 Layer 的类型名进行注册，注册时只是用 Layer 的 float 和 double 类型，这是网络实际数据使用到的类型。两个静态变量一个对应 float，另一个对应 double，这两个变量的初始化，也就是它们的构造函数实际上完成 Layer 的注册动作。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="k"&gt;typename&lt;/span&gt; &lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;LayerRegisterer&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+ &lt;span class="k"&gt;public&lt;/span&gt;&lt;span class="o"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;LayerRegisterer&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+                  &lt;span class="n"&gt;shared_ptr&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Layer&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;creator&lt;/span&gt;&lt;span class="p"&gt;)(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;LayerParameter&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;LayerRegistry&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;::&lt;/span&gt;&lt;span class="n"&gt;AddCreator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;creator&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;LayerRegisterer&lt;/code&gt; 对象初始化时实际上又是调用相应类型的 &lt;code&gt;LayerRegistry&lt;/code&gt; 类的静态方法 &lt;code&gt;AddCreator&lt;/code&gt;。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="n"&gt;std&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;map&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Creator&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;CreatorRegistry&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;CreatorRegistry&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;Registry&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="n"&gt;CreatorRegistry&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;g_registry_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;CreatorRegistry&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;g_registry_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;注册表类型为 &lt;code&gt;CreatorRegistry&lt;/code&gt;，实际类型为 &lt;code&gt;std::map&amp;lt;string, Creator&amp;gt;&lt;/code&gt;。可以通过 &lt;code&gt;Registry&lt;/code&gt; 函数获取注册表的全局单例。而注册的过程就是一个简单的 &lt;code&gt;map&lt;/code&gt; 操作。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;// Adds a creator.&lt;/span&gt;
+&lt;span class="k"&gt;static&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;AddCreator&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;string&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;Creator&lt;/span&gt; &lt;span class="n"&gt;creator&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;CreatorRegistry&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;registry&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Registry&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+  &lt;span class="n"&gt;CHECK_EQ&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;registry&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;count&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;Layer type &amp;quot;&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;type&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="s"&gt;&amp;quot; already registered.&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="n"&gt;registry&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;type&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;creator&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;注册的过程大概就是上面说到的流程。Caffe 中的 Layer 采用静态变量初始化的方式来注册工厂函数到全局注册表中，整个注册过程依赖这些静态变量。那么问题来了，为什么 VC 中的代码无法在注册表中找到 Layer 对应的工厂函数？事实上，VC 中 Caffe 代码的全局注册表是空的，一条记录都没有，问题并不是出在这个全局注册表，而是那些完成注册动作的静态变量。由于这些静态变量存在的意义在于其构造函数完成 Layer 的注册动作，没有任何一段代码会去引用这些静态变量，这个坑在于 VC 默认会优化掉这些静态变量，那么所有这些静态变量对应的构造函数将无法执行，那么注册动作一个都不会触发，导致全局注册表为空，然后在构造网络 Net 时就会崩溃。&lt;/p&gt;
+&lt;p&gt;在 VC 下解决这个问题的关键是让 VC 编译器不将这些静态变量优化掉，可以在 Linker 的配置中设置依赖项输入，如下图所示。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="caffe-vc-linker" src="https://luoyetx.github.io/images/2016/caffe-vc-linker.png"&gt;&lt;/p&gt;
+&lt;p&gt;通过上述的方法可以保证以静态库的方式链接 Caffe 代码时，Caffe 中的那些静态变量不会被优化掉。另外一种方式是直接将 Caffe 的源码加入到现有工程代码中，直接参与编译（不是编译生成静态库），这样也可以保证静态变量不被优化掉。&lt;/p&gt;
+&lt;p&gt;Caffe 的这种注册 Layer 的机制在 VC 下有点坑，但也不是不能解决，只要搞清楚 Caffe 内部的机制和 VC 的一些特征，还是很容易弄明白问题所在，进而寻求相应的解决方案。&lt;/p&gt;</content><category term="Machine Learning"></category></entry><entry><title>Similarity Transform Between Face Shapes</title><link href="https://luoyetx.github.io/face-similarity-transform.html" rel="alternate"></link><published>2016-01-13T00:00:00+08:00</published><updated>2016-01-13T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2016-01-13:/face-similarity-transform.html</id><summary type="html">&lt;p&gt;Many face alignment algorithm need to perform a similarity transform between training shapes and a particular shape, which is always a mean shape over ground truth shapes. During the trainin status, the algorithm will do a similarity transform between target shape residual and mean shape. This is required to calculate …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Many face alignment algorithm need to perform a similarity transform between training shapes and a particular shape, which is always a mean shape over ground truth shapes. During the trainin status, the algorithm will do a similarity transform between target shape residual and mean shape. This is required to calculate the transform parameters between two shapes.&lt;/p&gt;
+&lt;p&gt;When implementing the algorithm of 3000fps, I didn't really understand the math forumlas underneath. Today, I spend some time to study the math and find that &lt;a href="https://en.wikipedia.org/wiki/Procrustes_analysis"&gt;Procrustes analysis&lt;/a&gt; make things work.&lt;/p&gt;
+&lt;p&gt;Let me describe the problem here. We need to perform a similarity transform such that $S_2 = cR(S_1)+t$. $S_2$ presents Shape2 and $S_1$ presents Shape1, $c$ is the scale ratio and $t$ is the bias, the most important term is $R$ which presents the rotation.&lt;/p&gt;
+&lt;p&gt;$$
+R =
+\begin{bmatrix}
+cos\theta \quad -sin\theta \
+sin\theta \quad cos\theta \
+\end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;We first need to normalize the Shape, which can minus the mean point of a Shape and divided by the scale. The mean point can be easily calculated but the scale is pretty not intuitive. Actually, we can use $|S|$ or $|S|^2$ as Shape scale, according to Procrustes analysis, it matters little. After this step, we get bias $t$ and scale ratio $c$, what's left is all about $R$.&lt;/p&gt;
+&lt;p&gt;$R$ is a rotation matrix and we have many points to rotate. The target is to rotate the normalized Shape1 $S_1$ to normailzed Shape2 $S_2$, which will give us a minimum error between rotated normalized $S_1$ and normalized $S_2$. We can write a formula to present this. $[x_1, y_1, ...]$ presents the normalized $S_1$ and $[u_1, v_1, ...]$ presents the normalized $S_2$.&lt;/p&gt;
+&lt;p&gt;$$
+R=
+\begin{bmatrix}
+a \quad -b \
+b \quad a \
+\end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+E=\sum_{i}{||
+\begin{bmatrix}
+a \quad -b \
+b \quad a \
+\end{bmatrix} \cdot
+\begin{bmatrix}
+x_i \
+y_i \
+\end{bmatrix} -
+\begin{bmatrix}
+u_i \
+v_i \
+\end{bmatrix}
+||^2}
+$$&lt;/p&gt;
+&lt;p&gt;In order to minimize $E$, we can use &lt;a href="https://en.wikipedia.org/wiki/Least_squares"&gt;least squares&lt;/a&gt; method to calculate parameter $a$ and $b$. Take the derivatives and make them all zeros will give us the answer.&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial E}{\partial a}=\sum_{i}{2x_i(ax_i-by_i-u_i)+2y_i(bx_i+ay_i-v_i)}=0
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial E}{\partial b}=\sum_{i}{-2y_i(ax_i-by_i-u_i)+2x_i(bx_i+ay_i-v_i)}=0
+$$&lt;/p&gt;
+&lt;p&gt;Solving the equations above will give us $a$ and $b$.&lt;/p&gt;
+&lt;p&gt;$$
+\begin{bmatrix}
+a \
+b \
+\end{bmatrix}=\frac{1}{\sum{x_i^2+y_i^2}}
+\begin{bmatrix}
+\sum{x_iu_i+y_iv_i} \
+\sum{x_iv_i-y_iu_i} \
+\end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+tan\theta=\frac{b}{a}=\frac{\sum{x_iv_i-y_iu_i}}{\sum{x_iu_i+y_iv_i}}
+$$&lt;/p&gt;
+&lt;p&gt;With $tan\theta$, we can get $R$.&lt;/p&gt;
+&lt;h3&gt;References&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://www.csdn123.com/html/mycsdn20140110/66/66ab6d874ba3ff8b570efe34dd65ed8a.html"&gt;Geometrical constraints&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://en.wikipedia.org/wiki/Procrustes_analysis"&gt;Procrustes analysis&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Basic Mathematics in Neural Networks</title><link href="https://luoyetx.github.io/nn-math.html" rel="alternate"></link><published>2015-11-16T00:00:00+08:00</published><updated>2015-11-16T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-11-16:/nn-math.html</id><summary type="html">&lt;p&gt;Recently, I was reading the paper &lt;a href="http://cogprints.org/5869/1/cnn_tutorial.pdf"&gt;Notes on Convolution Neural Networks&lt;/a&gt;. The first part of the paper is talking about the traditional neural network, which is multi-layer fully connected network. It discusses the basic feature of multi-layer network and some formulas to present the feedforward pass and backpropagation pass. All …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Recently, I was reading the paper &lt;a href="http://cogprints.org/5869/1/cnn_tutorial.pdf"&gt;Notes on Convolution Neural Networks&lt;/a&gt;. The first part of the paper is talking about the traditional neural network, which is multi-layer fully connected network. It discusses the basic feature of multi-layer network and some formulas to present the feedforward pass and backpropagation pass. All the formulas are very simple but lack of the details about how things work. I am writing down this blog to record my derivation of these formulas.&lt;/p&gt;
+&lt;p&gt;A single layer in traditional neural network can be defined by the input $x$, the output $u$, the weight $W$ and the bias $b$, which we have $x \in R^n$, $W \in R^{m \cdot n}$, $b \in R^m$ and $u \in R^m$. And a layer can be defined like a function below.&lt;/p&gt;
+&lt;p&gt;$$
+u = W \cdot x + b
+$$&lt;/p&gt;
+&lt;p&gt;We first need some derivative of this function which will be every helpful later. we first rewrite this function to each element of $u$.&lt;/p&gt;
+&lt;p&gt;$$
+u_k = W_k \cdot x + b_k
+$$&lt;/p&gt;
+&lt;p&gt;$W_k$ is the k-th row of weight matrix $W$. We need three partial derivative $\frac{\partial u_k}{\partial b}$, $\frac{\partial u_k}{\partial W}$ and $\frac{\partial u_k}{\partial x}$. We also need another parital derivative of the function $u_k = W_k \cdot f(x) + b_k$, and the partial derivative is $\frac{\partial u_k}{\partial x}$.&lt;/p&gt;
+&lt;p&gt;The first term is $\frac{\partial u_k}{\partial b}$.&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial b_i} =
+    \begin{cases}
+    0 \quad if \quad i \neq k \
+    1 \quad if \quad i = k \
+    \end{cases}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial b} =
+    \begin{bmatrix}
+    \frac{\partial u_k}{\partial b_1} \
+    . \
+    \frac{\partial u_k}{\partial b_k} \
+    . \
+    \frac{\partial u_k}{\partial b_m} \
+    \end{bmatrix} =
+    \begin{bmatrix}
+    0 \
+    . \
+    1 \
+    . \
+    0 \
+    \end{bmatrix} \in R^m
+$$&lt;/p&gt;
+&lt;p&gt;which we have $1$ in $k$-th row.&lt;/p&gt;
+&lt;p&gt;The second term is $\frac{\partial u_k}{\partial W}$.&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial W_i} =
+    \begin{cases}
+    0 \quad if \quad i \neq k \
+    x^T \quad if \quad i = k \
+    \end{cases}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial W} =
+    \begin{bmatrix}
+    \frac{\partial u_k}{\partial W_1} \
+    . \
+    \frac{\partial u_k}{\partial W_k} \
+    . \
+    \frac{\partial u_k}{\partial W_m} \
+    \end{bmatrix} =
+    \begin{bmatrix}
+    0 \
+    . \
+    x^T \
+    . \
+    0 \
+    \end{bmatrix}
+        \in R^{m \cdot n}
+$$&lt;/p&gt;
+&lt;p&gt;which we have $x^T$ in $k$-th row.&lt;/p&gt;
+&lt;p&gt;The third term is $\frac{\partial u_k}{\partial x}$.&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial x} =
+    \begin{bmatrix}
+    \frac{\partial u_k}{\partial x_1} \
+    . \
+    . \
+    \frac{\partial u_k}{\partial x_n} \
+    \end{bmatrix} =
+    \begin{bmatrix}
+    W_k1 \
+    . \
+    . \
+    W_kn \
+    \end{bmatrix} = W_k^T \in R^{n}
+$$&lt;/p&gt;
+&lt;p&gt;The fourth term is the partial derivative $\frac{\partial u_k}{\partial x}$ of function $u_k = W_k \cdot f(x) + b$.&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial x_i} = W_ki \cdot f^\prime(x_i)
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial u_k}{\partial x} = W_k^T \circ f^\prime(x)
+$$&lt;/p&gt;
+&lt;p&gt;the notation $\circ$ here is an element wise multiplication.&lt;/p&gt;
+&lt;p&gt;With the four derivative above, we can now derivate the backpropagation algorithm of traditioanl neural network. We define $l$-th layer's input $x^{l-1}$, the output $u^l$, the weights $W^l$ and the bias $b^l$, we also define the activation function $f$. And the neural network is combined with $L$ layers, and its input will be $x^0$ and the output will be $t = f(u^L)$. We also define the loss $E = \frac{1}{2} \cdot | t - y|_2^2$. The relationship of all these notations are listed below.&lt;/p&gt;
+&lt;p&gt;$$
+x^{l} = f(u^l),\quad u^l = W^l \cdot x^{l-1} + b^l
+$$&lt;/p&gt;
+&lt;p&gt;For gradient descent, we need to calculate $\frac{\partial E}{\partial W^l}$ and $\frac{\partial E}{\partial b^l}$, and it is all backpropagation algorithm about. We first calculate $\frac{\partial E}{\partial b^l}$ and define a notation $\delta$ to help calculate these two partial derivative.&lt;/p&gt;
+&lt;p&gt;$$
+\delta^l = \frac{\partial E}{\partial u^l}
+$$&lt;/p&gt;
+&lt;p&gt;for $l$-th layer, we are not care the dimension of the input and output, the infomation are all in the $x^l$ and $u^l$.&lt;/p&gt;
+&lt;p&gt;to calculate $\frac{\partial E}{\partial b^l}$, we use $\frac{\partial u_k}{\partial b}$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial E}{\partial b^l} = \sum_{k}\frac{\partial E}{\partial u_k^l} \cdot \frac{\partial u_k^l}{\partial b^l},
+$$&lt;/p&gt;
+&lt;p&gt;$$
+= \sum_{k}\delta_k^l \cdot
+    \begin{bmatrix}
+    0 \
+    . \
+    1 \
+    . \
+    0 \
+    \end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+= \sum_{k}
+    \begin{bmatrix}
+    0 \
+    . \
+    \delta_k^l \
+    . \
+    0 \
+    \end{bmatrix} = \delta^l
+$$&lt;/p&gt;
+&lt;p&gt;to calculate $\frac{\partial E}{\partial W^l}$, we use $\frac{\partial u_k}{\partial W}$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial E}{\partial W^l} = \sum_{k}\frac{\partial E}{\partial u^l_k} \cdot \frac{\partial u^l_k}{\partial W^l},
+$$&lt;/p&gt;
+&lt;p&gt;$$
+= \sum_{k}\delta^l_k \cdot
+    \begin{bmatrix}
+    0 \
+    . \
+    {(x^{l-1})}^T \
+    . \
+    0 \
+    \end{bmatrix}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+= \sum_{k}
+    \begin{bmatrix}
+    0 \
+    . \
+    \delta^l_k \cdot {(x^{l-1})}^T \
+    . \
+    0 \
+    \end{bmatrix} = \delta^l \cdot {(x^{l-1})}^T
+$$&lt;/p&gt;
+&lt;p&gt;Now, we can calculate the gradient for parameters $W^l$ and $b^l$, but they all depend on $\delta^l$ which is the core of backpropagation algorithm. And the algorithm is all about how to calculate $\delta^l$ from higher layer to lower layer, and the highest layer is the neural network's output layer which we put the loss $E$ in the algorithm.&lt;/p&gt;
+&lt;p&gt;We first calculate $\delta^l$, using $\frac{\partial u_k}{\partial x}$ of function $u = W \cdot x + b$ and $\frac{\partial u_k}{\partial x}$ in function $u = W \cdot f(x) + b$, and we also have $u^{l+1} = W^{l+1} \cdot f(u^l) + b^{l+1}$&lt;/p&gt;
+&lt;p&gt;$$
+\delta^l = \frac{\partial E}{\partial u^l} = \sum_{k}\frac{\partial E}{\partial u^{l+1}_k} \cdot \frac{\partial u^{l+1}_k}{\partial u^l}
+$$&lt;/p&gt;
+&lt;p&gt;$$
+= \sum_{k}\delta^{l+1}_k \cdot {(W^{l+1}_k)}^T \circ f^\prime(u^l)
+$$&lt;/p&gt;
+&lt;p&gt;$$
+= {(W^{l+1})}^T \cdot \delta^{l+1} \circ f^\prime(u^l)
+$$&lt;/p&gt;
+&lt;p&gt;for the output layer, we have $t = f(u^L)$ and $E = \frac{1}{2} \cdot | t - y|_2^2$.&lt;/p&gt;
+&lt;p&gt;$$
+\delta^L = \frac{\partial E}{\partial u^L} = f^\prime(u^L) \circ (t - y)
+$$&lt;/p&gt;
+&lt;p&gt;Finally, we get all these notations solved, and given an input $x^0$ and a target $y$ attached to it, which we have $x^0 \in R^n$ and $y \in R^m$. We first forwrad neural network and get all $u^l$, then calculate the top layer $\delta^L$, after all, we backword the error from top to bottom to calculate $\delta^l$, meanwhile update $W^l$ and $u^l$. This is really how the backpropagation algorithm works.&lt;/p&gt;
+&lt;p&gt;Let me put all notations together.&lt;/p&gt;
+&lt;p&gt;feedforward&lt;/p&gt;
+&lt;p&gt;$$
+x^{l} = f(u^l),\quad u^l = W^l \cdot x^{l-1} + b^l
+$$&lt;/p&gt;
+&lt;p&gt;backpropagation&lt;/p&gt;
+&lt;p&gt;$$
+\delta^L = f^\prime(u^L) \circ (t - y)
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\delta^l = {(W^{l+1})}^T \cdot \delta^{l+1} \circ f^\prime(u^l)
+$$&lt;/p&gt;
+&lt;p&gt;gradient of parameters&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial E}{\partial W^l} = \delta^l \cdot {(x^{l-1})}^T
+$$&lt;/p&gt;
+&lt;p&gt;$$
+\frac{\partial E}{\partial b^l} = \delta^l
+$$&lt;/p&gt;
+&lt;p&gt;That's all.&lt;/p&gt;
+&lt;h3&gt;References&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://cogprints.org/5869/1/cnn_tutorial.pdf"&gt;Notes on Convolution Neural Networks&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Caffe 源码阅读 Blob</title><link href="https://luoyetx.github.io/reading-caffe-2.html" rel="alternate"></link><published>2015-10-31T00:00:00+08:00</published><updated>2015-10-31T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-10-31:/reading-caffe-2.html</id><summary type="html">&lt;p&gt;Blob 在 Caffe 中扮演了重要的角色，用于存储数据和网络参数，同时也在 CPU 和 GPU 之间做了数据同步。Blob 原本在 Caffe 中被表示为一个 4 维数组 (num x channel x height x width)，现在可以表示多维数组，最高维数由宏 &lt;code&gt;kMaxBlobAxes&lt;/code&gt; 确定，目前 blob.hpp 中设置了 &lt;code&gt;const int kMaxBlobAxes = 32;&lt;/code&gt;。Blob 类的代码主要集中在 blob.hpp 和 blob.cpp 中。&lt;/p&gt;
+&lt;h3&gt;数据与相关操作函数&lt;/h3&gt;
+&lt;p&gt;Blob 类主要包括如下成员&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;shared_ptr&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;data_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// data …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;Blob 在 Caffe 中扮演了重要的角色，用于存储数据和网络参数，同时也在 CPU 和 GPU 之间做了数据同步。Blob 原本在 Caffe 中被表示为一个 4 维数组 (num x channel x height x width)，现在可以表示多维数组，最高维数由宏 &lt;code&gt;kMaxBlobAxes&lt;/code&gt; 确定，目前 blob.hpp 中设置了 &lt;code&gt;const int kMaxBlobAxes = 32;&lt;/code&gt;。Blob 类的代码主要集中在 blob.hpp 和 blob.cpp 中。&lt;/p&gt;
+&lt;h3&gt;数据与相关操作函数&lt;/h3&gt;
+&lt;p&gt;Blob 类主要包括如下成员&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;shared_ptr&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;data_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// data 数据&lt;/span&gt;
+&lt;span class="n"&gt;shared_ptr&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;diff_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// diff 数据&lt;/span&gt;
+&lt;span class="n"&gt;shared_ptr&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;shape_data_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 每一维数据的大小&lt;/span&gt;
+&lt;span class="n"&gt;vector&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;shape_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 跟 shape_data_ 一样&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;count_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 当前容纳的数据大小&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;capacity_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 最大能够容纳的数据大小&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其中 SyncedMemory 主要用来实现数据在 CPU 和 GPU 上的管理。同时 Blob 类提供一组函数来操作这些数据。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;cpu_data&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;set_cpu_data&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;gpu_shape&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;gpu_data&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;cpu_diff&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;gpu_diff&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;mutable_cpu_data&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;mutable_gpu_data&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;mutable_cpu_diff&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;mutable_gpu_diff&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们可以通过这些函数拿到 Blob 内部的数据包括修改 Blob 的内部数据。其中的 Dtype 是泛型类型，在定义 Blob 变量时设置的，一般为 float 或者 double。&lt;/p&gt;
+&lt;p&gt;Blob 类在内部所存储的数据是一块连续的内存，为了表示多维数组，shape_ 和 shape_data_ 记录了每一维的大小，这样就能够很轻松地从给出的坐标中计算出 offset 从而得到那个点的数据。由于 Blob 主要还是用来表示 4 维数组 (最初就是这样的)，Blob 类中仍使用了 &lt;code&gt;int num(); int channels(); int height(); int width();&lt;/code&gt; 这些函数，其实 num 等价于 shape()[0]，channels 等价于 shape()[1]，height 等价于 shape()[2]，width 等价于 shape()[3]。计算 offset 时可以使用这四个数字或者直接给出坐标。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;offset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;n&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;c&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;h&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;w&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="nf"&gt;offset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;vector&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;indices&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;有了 Blob 提供的这组函数和上一组函数，我们就可以轻易地操作 Blob 内部的数据了。&lt;/p&gt;
+&lt;h3&gt;动态多维数组&lt;/h3&gt;
+&lt;p&gt;Blob 类可以动态改变数组的尺寸，当拓展数组导致原有内存空间不足以存放下数据时 (count_ &amp;gt; capacity_)，就会重新分配内存。Blob 提供了一组 Reshape 函数来完成这个功能。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;Reshape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;num&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;channels&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;height&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;width&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// Deprecated&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;Reshape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;vector&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;Reshape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;BlobShape&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;ReshapeLike&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;Blob&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;other&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;Blob 类在初始化时并没有分配内存，也是通过调用 Reshape 来分配内存的。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;template&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="k"&gt;typename&lt;/span&gt; &lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="n"&gt;Blob&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;::&lt;/span&gt;&lt;span class="n"&gt;Reshape&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="n"&gt;vector&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;&amp;gt;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;CHECK_LE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;(),&lt;/span&gt; &lt;span class="n"&gt;kMaxBlobAxes&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 检查维数&lt;/span&gt;
+  &lt;span class="n"&gt;count_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 用于计算新的多维数组的大小&lt;/span&gt;
+  &lt;span class="n"&gt;shape_&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;resize&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;());&lt;/span&gt; &lt;span class="c1"&gt;// 更新维数&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;!&lt;/span&gt;&lt;span class="n"&gt;shape_data_&lt;/span&gt; &lt;span class="o"&gt;||&lt;/span&gt; &lt;span class="n"&gt;shape_data_&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// shape_data_ 未初始化或者内存太小&lt;/span&gt;
+    &lt;span class="n"&gt;shape_data_&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;shape_data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="k"&gt;static_cast&lt;/span&gt;&lt;span class="o"&gt;&amp;lt;&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt;&lt;span class="o"&gt;*&amp;gt;&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;shape_data_&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;mutable_cpu_data&lt;/span&gt;&lt;span class="p"&gt;());&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="n"&gt;i&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="o"&gt;++&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="n"&gt;CHECK_GE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;CHECK_LE&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;],&lt;/span&gt; &lt;span class="n"&gt;INT_MAX&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;count_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;blob size exceeds INT_MAX&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;count_&lt;/span&gt; &lt;span class="o"&gt;*=&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;shape_&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+    &lt;span class="n"&gt;shape_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;shape&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;i&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;count_&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;&lt;/span&gt; &lt;span class="n"&gt;capacity_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="c1"&gt;// 内存不够&lt;/span&gt;
+    &lt;span class="n"&gt;capacity_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;count_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;data_&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;capacity_&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+    &lt;span class="n"&gt;diff_&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;new&lt;/span&gt; &lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;capacity_&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;Dtype&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;SyncedMemory&lt;/h3&gt;
+&lt;p&gt;Blob 事实上是对 SyncedMemory 的封装。SyncedMemory 完成了对内存的实际操作，包括数据在 CPU 和 GPU 上的同步。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;enum&lt;/span&gt; &lt;span class="n"&gt;SyncedHead&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="n"&gt;UNINITIALIZED&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;HEAD_AT_CPU&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;HEAD_AT_GPU&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;SYNCED&lt;/span&gt; &lt;span class="p"&gt;};&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;cpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// cpu 数据&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;gpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// gpu 数据&lt;/span&gt;
+&lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 数据大小&lt;/span&gt;
+&lt;span class="n"&gt;SyncedHead&lt;/span&gt; &lt;span class="n"&gt;head_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 数据同步状态&lt;/span&gt;
+&lt;span class="kt"&gt;bool&lt;/span&gt; &lt;span class="n"&gt;own_cpu_data_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 是否拥有当前 cpu 数据&lt;/span&gt;
+&lt;span class="kt"&gt;bool&lt;/span&gt; &lt;span class="n"&gt;cpu_malloc_use_cuda_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 是否采用 CUDA 来分配 CPU 数据，默认不用&lt;/span&gt;
+&lt;span class="kt"&gt;bool&lt;/span&gt; &lt;span class="n"&gt;own_gpu_data_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 是否拥有当前 gpu 数据&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;gpu_device_&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// gpu 数据所在的显卡号&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;SyncedMemory 内部存放了两份数据，分别位于 CPU 和 GPU 上，用 cpu_ptr 和 gpu_ptr 表示。同时 SyncedMemory 也给出了一组函数来获取和设置实际数据。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;cpu_data&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;set_cpu_data&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;gpu_data&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;set_gpu_data&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;mutable_cpu_data&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="nf"&gt;mutable_gpu_data&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;head_ 表示了数据的同步状态，通过调用 &lt;code&gt;to_cpu()&lt;/code&gt; 和 &lt;code&gt;to_gpu()&lt;/code&gt; 来做同步。如果 head_ = UNINITIALIZED 则分配相应的内存。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kr"&gt;inline&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;to_cpu&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;switch&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;head_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;UNINITIALIZED&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;CaffeMallocHost&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;cpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;cpu_malloc_use_cuda_&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 分配内存&lt;/span&gt;
+    &lt;span class="n"&gt;caffe_memset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 初始化为 0&lt;/span&gt;
+    &lt;span class="n"&gt;head_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HEAD_AT_CPU&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;own_cpu_data_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;HEAD_AT_GPU&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+&lt;span class="cp"&gt;#ifndef CPU_ONLY&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cpu_ptr_&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="c1"&gt;// 如果未初始化，则分配内存&lt;/span&gt;
+      &lt;span class="n"&gt;CaffeMallocHost&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;cpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;cpu_malloc_use_cuda_&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+      &lt;span class="n"&gt;own_cpu_data_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="c1"&gt;// 复制 GPU 数据到 CPU&lt;/span&gt;
+    &lt;span class="n"&gt;caffe_gpu_memcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;gpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;head_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;SYNCED&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#else&lt;/span&gt;
+    &lt;span class="n"&gt;NO_GPU&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+    &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;HEAD_AT_CPU&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;SYNCED&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kr"&gt;inline&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="n"&gt;SyncedMemory&lt;/span&gt;&lt;span class="o"&gt;::&lt;/span&gt;&lt;span class="n"&gt;to_gpu&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="cp"&gt;#ifndef CPU_ONLY&lt;/span&gt;
+  &lt;span class="k"&gt;switch&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;head_&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;UNINITIALIZED&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;CUDA_CHECK&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cudaGetDevice&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gpu_device_&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c1"&gt;// 获取显卡号&lt;/span&gt;
+    &lt;span class="n"&gt;CUDA_CHECK&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cudaMalloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt; &lt;span class="c1"&gt;// 在指定显卡上分配内存&lt;/span&gt;
+    &lt;span class="n"&gt;caffe_gpu_memset&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;gpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 初始化为 0&lt;/span&gt;
+    &lt;span class="n"&gt;head_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;HEAD_AT_GPU&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;own_gpu_data_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;HEAD_AT_CPU&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;gpu_ptr_&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+      &lt;span class="c1"&gt;// 未初始化就在指定显卡上分配内存&lt;/span&gt;
+      &lt;span class="n"&gt;CUDA_CHECK&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cudaGetDevice&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gpu_device_&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+      &lt;span class="n"&gt;CUDA_CHECK&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;cudaMalloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+      &lt;span class="n"&gt;own_gpu_data_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;true&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="n"&gt;caffe_gpu_memcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;size_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;cpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;gpu_ptr_&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 复制数据&lt;/span&gt;
+    &lt;span class="n"&gt;head_&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;SYNCED&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;HEAD_AT_GPU&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="k"&gt;case&lt;/span&gt; &lt;span class="nl"&gt;SYNCED&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="k"&gt;break&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="cp"&gt;#else&lt;/span&gt;
+  &lt;span class="n"&gt;NO_GPU&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;数据序列化&lt;/h3&gt;
+&lt;p&gt;Blob 数据可以通过 Protobuf 来做相应的序列化操作，&lt;code&gt;ToProto&lt;/code&gt; 和 &lt;code&gt;FromProto&lt;/code&gt; 完成相应的序列化操作。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kd"&gt;message&lt;/span&gt; &lt;span class="nc"&gt;BlobProto&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="k"&gt;optional&lt;/span&gt; &lt;span class="n"&gt;BlobShape&lt;/span&gt; &lt;span class="na"&gt;shape&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;7&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+  &lt;span class="k"&gt;repeated&lt;/span&gt; &lt;span class="kt"&gt;float&lt;/span&gt; &lt;span class="na"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;5&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;packed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="k"&gt;repeated&lt;/span&gt; &lt;span class="kt"&gt;float&lt;/span&gt; &lt;span class="na"&gt;diff&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;6&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;packed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="k"&gt;repeated&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="na"&gt;double_data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;8&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;packed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="k"&gt;repeated&lt;/span&gt; &lt;span class="kt"&gt;double&lt;/span&gt; &lt;span class="na"&gt;double_diff&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;9&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;packed&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="kc"&gt;true&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+
+  &lt;span class="c1"&gt;// 4D dimensions -- deprecated.  Use &amp;quot;shape&amp;quot; instead.&lt;/span&gt;
+  &lt;span class="k"&gt;optional&lt;/span&gt; &lt;span class="kt"&gt;int32&lt;/span&gt; &lt;span class="na"&gt;num&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="k"&gt;optional&lt;/span&gt; &lt;span class="kt"&gt;int32&lt;/span&gt; &lt;span class="na"&gt;channels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="k"&gt;optional&lt;/span&gt; &lt;span class="kt"&gt;int32&lt;/span&gt; &lt;span class="na"&gt;height&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+  &lt;span class="k"&gt;optional&lt;/span&gt; &lt;span class="kt"&gt;int32&lt;/span&gt; &lt;span class="na"&gt;width&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="k"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;];&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h3&gt;小结&lt;/h3&gt;
+&lt;p&gt;Caffe 通过 SyncedMemory 和 Blob 封装了底层数据，为 Caffe 框架上的其他组件提供最基础的数据抽象，后面的 Layer 参数，Net 参数以及 Solver 的参数等都是 Blob 数据，所以理解 Blob 抽象和管理数据的实现方式有助于后续 Caffe 源码的阅读，也是阅读 Caffe 源码的第一步。&lt;/p&gt;
+&lt;h3&gt;参考资料&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="https://github.com/BVLC/caffe"&gt;Caffe 源码&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Caffe 源码阅读 伊始</title><link href="https://luoyetx.github.io/reading-caffe-1.html" rel="alternate"></link><published>2015-10-21T00:00:00+08:00</published><updated>2015-10-21T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-10-21:/reading-caffe-1.html</id><summary type="html">&lt;p&gt;&lt;a href="http://caffe.berkeleyvision.org/"&gt;Caffe&lt;/a&gt; 是一个深度学习的框架，以 C++ 编写，性能卓越，并且现在已经支持单机多 GPU 运算。这篇博文包括之后的文章记录了我自己阅读学习 Caffe 源码的过程，也借此鼓励自己坚持下去，好好向 Caffe 的作者学习。&lt;/p&gt;
+&lt;p&gt;深度学习在这几年火得不行，尤其是 CNN 已经成为了解决视觉方面难题的神兵利器，而在 CNN 框架的开源实现方面，Caffe 以其使用简单，性能卓越，CPU/GPU 无缝切换等优点，受到了众多开发人员和研究人员的关注。Caffe 源码托管在 &lt;a href="https://github.com/"&gt;Github&lt;/a&gt; 上，任何人都能够免费获取并使用它。&lt;/p&gt;
+&lt;h3&gt;Caffe 概况&lt;/h3&gt;
+&lt;p&gt;Caffe 中网络模型的描述及其求解都是通过 &lt;a href="https://developers.google.com/protocol-buffers/"&gt;protobuf&lt;/a&gt; 定义的，并不需要通过敲代码来实现。同时，模型的参数也是通过 &lt;a href="https://developers.google.com/protocol-buffers/"&gt;protobuf&lt;/a&gt; 实现加载和存储，包括 CPU 与 GPU …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;a href="http://caffe.berkeleyvision.org/"&gt;Caffe&lt;/a&gt; 是一个深度学习的框架，以 C++ 编写，性能卓越，并且现在已经支持单机多 GPU 运算。这篇博文包括之后的文章记录了我自己阅读学习 Caffe 源码的过程，也借此鼓励自己坚持下去，好好向 Caffe 的作者学习。&lt;/p&gt;
+&lt;p&gt;深度学习在这几年火得不行，尤其是 CNN 已经成为了解决视觉方面难题的神兵利器，而在 CNN 框架的开源实现方面，Caffe 以其使用简单，性能卓越，CPU/GPU 无缝切换等优点，受到了众多开发人员和研究人员的关注。Caffe 源码托管在 &lt;a href="https://github.com/"&gt;Github&lt;/a&gt; 上，任何人都能够免费获取并使用它。&lt;/p&gt;
+&lt;h3&gt;Caffe 概况&lt;/h3&gt;
+&lt;p&gt;Caffe 中网络模型的描述及其求解都是通过 &lt;a href="https://developers.google.com/protocol-buffers/"&gt;protobuf&lt;/a&gt; 定义的，并不需要通过敲代码来实现。同时，模型的参数也是通过 &lt;a href="https://developers.google.com/protocol-buffers/"&gt;protobuf&lt;/a&gt; 实现加载和存储，包括 CPU 与 GPU 之间的无缝切换，都是通过配置来实现的，不需要通过硬编码的方式实现。原则上讲，如果只是使用 Caffe 来训练卷积神经网络的话，我们完全不需要接触或者了解 Caffe 的源码，只需要关注如何定义网络模型和求解参数的设置，并且准备好相应格式的训练数据就完了。Caffe 本身采用 C++ 编写，速度非常快，加上对 GPU 的支持，在各大 CNN 的实现中，速度还是处于领先地位的。同时 Caffe 本身也是支持纯 CPU 下的计算的，当我们在 GPU 下训练完网络，也可以很简单地切换到 CPU 下运行计算网络，只需简单修改一下 Caffe 的配置。Caffe 同时也有一个庞大的社区来支持和维护 Caffe 的代码，添加新的功能，修正 bug 等，社区非常活跃，&lt;a href="https://groups.google.com/forum/#!forum/caffe-users"&gt;Google Groups&lt;/a&gt; 上的讨论也非常多。&lt;/p&gt;
+&lt;h3&gt;Caffe 整体结构&lt;/h3&gt;
+&lt;p&gt;Caffe 代码本身非常模块化，主要由 4 部分组成 &lt;code&gt;Blob&lt;/code&gt; &lt;code&gt;Layer&lt;/code&gt; &lt;code&gt;Net&lt;/code&gt; 和 &lt;code&gt;Solver&lt;/code&gt;。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Blob&lt;/code&gt; 主要用来表示网络中的数据，包括训练数据，网络各层自身的参数，网络之间传递的数据都是通过 Blob 来实现的，同时 Blob 数据也支持在 CPU 与 GPU 上存储，能够在两者之间做同步。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Layer&lt;/code&gt; 是对神经网络中各种层的一个抽象，包括我们熟知的卷积层和下采样层，还有全连接层和各种激活函数层等等。同时每种 Layer 都实现了前向传播和反向传播，并通过 Blob 来传递数据。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Net&lt;/code&gt; 是对整个网络的表示，由各种 Layer 前后连接组合而成，也是我们所构建的网络模型。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Solver&lt;/code&gt; 定义了针对 &lt;code&gt;Net&lt;/code&gt; 网络模型的求解方法，记录网络的训练过程，保存网络模型参数，中断并恢复网络的训练过程。自定义 Solver 能够实现不同的网络求解方式。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;阅读 Caffe 代码可以通过由小到大，至上而下的方式来阅读学习，首先学习 Blob 的实现，然后查看 Layer 的定义并阅读各种类型的 Layer 的实现方式，最后阅读 Net 的代码来学习整个网络结构。而 Solver 的代码可以单独列出来学习，了解网络的求解优化过程。我也会以这种方式阅读 Caffe 源码并记录自己的阅读心得并做些总结，希望自己能够坚持下去。&lt;strong&gt;Fighting!!!&lt;/strong&gt;&lt;/p&gt;
+&lt;h3&gt;理论知识积累&lt;/h3&gt;
+&lt;p&gt;如果没有理论知识的基础，我认为学习 Caffe 源码的意义不是很大，所以强烈建议大家事先学习一下神经网络相关的基础知识，并且简单地使用一下 Caffe 之后再阅读其相应的源码，这样收获会更多，意义也更大。如果想用 Caffe 练练手，可以参考我的另外一篇博文 &lt;a href="/2015/04/little-caffe/"&gt;Caffe 小试牛刀&lt;/a&gt;，利用 Caffe 做 &lt;a href="https://www.kaggle.com/"&gt;Kaggle&lt;/a&gt; 上的手写体识别。&lt;/p&gt;
+&lt;h3&gt;参考资料&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://caffe.berkeleyvision.org/"&gt;Caffe&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Face Alignment at 3000 FPS via Regressing Local Binary Features</title><link href="https://luoyetx.github.io/face-alignment-at-3000fps.html" rel="alternate"></link><published>2015-08-19T00:00:00+08:00</published><updated>2015-08-19T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-08-19:/face-alignment-at-3000fps.html</id><summary type="html">&lt;p&gt;Face Alignment at 3000 FPS via Regressing Local Binary Features 这篇论文(下面简称 3000fps)实现了对人脸关键点的高速检测，而且预测的精度也是相当的高。本文首先讲解了 3000fps 整篇论文的思路和方法，然后具体谈谈如何利用 C++ 实现这篇论文中的方法。&lt;/p&gt;
+&lt;h3&gt;论文解读&lt;/h3&gt;
+&lt;p&gt;3000fps总体上采用了随机森林和全局线性回归相结合的方法，相对于使用卷积神经的深度学习方法，3000fps采用的算是传统的机器学习方法。CUHK 的 Deep Convolutional Network Cascade for Facial Point Detection 采用了级联卷积神经网络的方法来预测人脸关键点，我针对这篇论文有过相应的实现，采用了 Caffe 框架，并利用论文作者开放出来的数据集进行训练，预测的结果还是相当不错的，相关代码已托管在 github 上，请戳&lt;a href="https://github.com/luoyetx/deep-landmark"&gt;这里&lt;/a&gt;，欢迎指正。&lt;/p&gt;
+&lt;p&gt;我们回到 3000fps …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Face Alignment at 3000 FPS via Regressing Local Binary Features 这篇论文(下面简称 3000fps)实现了对人脸关键点的高速检测，而且预测的精度也是相当的高。本文首先讲解了 3000fps 整篇论文的思路和方法，然后具体谈谈如何利用 C++ 实现这篇论文中的方法。&lt;/p&gt;
+&lt;h3&gt;论文解读&lt;/h3&gt;
+&lt;p&gt;3000fps总体上采用了随机森林和全局线性回归相结合的方法，相对于使用卷积神经的深度学习方法，3000fps采用的算是传统的机器学习方法。CUHK 的 Deep Convolutional Network Cascade for Facial Point Detection 采用了级联卷积神经网络的方法来预测人脸关键点，我针对这篇论文有过相应的实现，采用了 Caffe 框架，并利用论文作者开放出来的数据集进行训练，预测的结果还是相当不错的，相关代码已托管在 github 上，请戳&lt;a href="https://github.com/luoyetx/deep-landmark"&gt;这里&lt;/a&gt;，欢迎指正。&lt;/p&gt;
+&lt;p&gt;我们回到 3000fps 这篇论文，论文中思路与前几年的论文 Face Alignment by Explicit Shape Regression(下面简称 ESR) 还有 Robust face landmark estimation under occlusion(下面简称 RCPR) 有共通之处。这三篇论文的总体思路都可以用下面这个公式来表达&lt;/p&gt;
+&lt;p&gt;$$S^{t} = S^{t-1} + R^{t}(I, S^{t-1})$$&lt;/p&gt;
+&lt;p&gt;这个公式包含了很多信息，我们先来认识几个名词。我们把关键点的集合称作形状，形状包含了关键点的位置信息，而这个位置信息一般可以用两种形式表示，第一种是关键点的位置相对于整张图像，第二种是关键点的位置相对于人脸框(标识出人脸在整个图像中的位置)。我们把第一种形状称作绝对形状，它的取值一般介于 0 到 w or h，第二种形状我们称作相对形状，它的取值一般介于 0 到 1。这两种形状可以通过人脸框来做转换。公式中的 $S^t$ 就表示了绝对形状，$R^t$ 表示一个回归器，$I$ 表示图像，$R^t$ 根据图像和形状的位置信息，预测出一个形变，并将它加到当前形状上组成一个新的形状。$t$ 表示级联层数，一般我们会通过多层级联来预测形状。&lt;/p&gt;
+&lt;h4&gt;回归器 $R^t$&lt;/h4&gt;
+&lt;p&gt;ESR 和 RCPR 采用了随机厥作 Regression，随机厥在叶子节点中存储了对应的形变，在预测过程中，当样本落入某个叶子节点时，就将其上存储的形变作为预测的输出，我们在这里不具体展开随机厥的相关内容。而在 3000fps 中使用了较为复杂的实现。首先，3000fps 并没用采用随机厥作为预测的单元，而是采用了随机树，并且用随机森林来做预测。其次 3000fps 并没有直接采用随机树叶子节点存储的形变量作为预测输出，而是将随机森林的输出组成一种特征(称作 LBF)，利用这个 LBF 来做预测。除了采用随机森林的结构来做预测，3000fps 还针对每个关键点给出一个随机森林来做预测，并将所有关键点对应的随机森林输出的局部特征相互连接起来，称作局部二值特征(LBF)，然后利用这个局部二值特征来做全局回归，用来预测形变。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="3000fps-train-test" src="https://luoyetx.github.io/images/2015/3000fps-train-test.png"&gt;&lt;/p&gt;
+&lt;p&gt;上图描述了回归器 $R^t$ 的训练和预测过程。其中 $\Phi^{t}_{l}$ 表示第 $t$ 级中第 $l$ 个关键点所对应的随机森林，所有关键点的随机森林一起组成了 $\Phi^t$，它的输出为 LBF 特征。然后利用 LBF 特征来训练全局线性回归或者预测形变。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="3000fps-one-landmark" src="https://luoyetx.github.io/images/2015/3000fps-one-landmark.png"&gt;&lt;/p&gt;
+&lt;p&gt;上图描述了 $R^t$ 生成 LBF 特征的过程，图的下半部分描述了单个关键点上随机森林输出了一个局部二值特征，然后把所有随机森林的输出前后连接起来组成一个非常大但又非常稀疏的 LBF 特征。这个特征只有 01 组成，且大部分是 0，特征非常稀疏。&lt;/p&gt;
+&lt;h4&gt;Shape-indexed 特征&lt;/h4&gt;
+&lt;p&gt;每个关键点都会对应一个随机森林，而每个随机森林是由多个相互独立的随机树组成。论文中的随机树采用的特征被称作 Shape-indexed 特征，ESR 和 RCPR 中也是用到了相同的特征，这个特征主要描述为人脸区域中两个点的像素差值。关于两个像素点的选取，三个方法使用到了不同的策略。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="3000fps-esr-feature" src="https://luoyetx.github.io/images/2015/3000fps-esr-feature.png"&gt;&lt;/p&gt;
+&lt;p&gt;ESR 方法采用在两个关键点附近随机出两个点，做这两个点之间的差值作为 Shape-indexed 特征.&lt;/p&gt;
+&lt;p&gt;&lt;img alt="3000fps-rcpr-feature" src="https://luoyetx.github.io/images/2015/3000fps-rcpr-feature.png"&gt;&lt;/p&gt;
+&lt;p&gt;RCPR 方法采用选取两个关键点的中点外加一个随机偏置来生成特征点，用两个这样的特征点的差值作为 Shape-indexed 特征。&lt;/p&gt;
+&lt;p&gt;在 3000fps 中，由于随机森林是针对单个关键点的，所有随机树中使用到的特征点不会关联到其他关键点上，只在当前关键点的附近区域随机产生两个特征点，做像素差值来作为 Shape-index 特征。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="3000fps-feature" src="https://luoyetx.github.io/images/2015/3000fps-feature.png"&gt;&lt;/p&gt;
+&lt;p&gt;3000fps 中随着级联的深入(即 $t$ 越来越大)，随机点的范围也会逐渐变小，以期获得更加准确的局部特征。&lt;/p&gt;
+&lt;h4&gt;随机树的训练&lt;/h4&gt;
+&lt;p&gt;上一节已经确定了随机树训练时用到的 Shape-indexed 特征。在训练随机树时，我们的输入是 $X={I, S}$ 而预测目标是 $Y=\Delta S$。实际在训练随机树时，树中的每个节点的训练过程都是一样的。我们在训练某个节点时，从事先随机生成好的 Shape-indexed 特征集合 $F$ 中选取一个(当然，你也可以临时随机生成一个特征集合，或整棵随机树使用一个特征集合或整个随机森林使用一个特征集合，我们这里假设这棵随机树使用一个特征集合)，选取的特征能够将所有样本点 $x$ 映射成一个实数集合，我们再随机一个阈值将样本点分配到左右子树中，而目的是希望左右子树中的样本点的 $y$ 具有相同的模式。特征选取可以用如下公式描述&lt;/p&gt;
+&lt;p&gt;$$f = \underset{f \in F}{\operatorname{argmax}}\Delta$$&lt;/p&gt;
+&lt;p&gt;$$\Delta = S(y | y \in Root) - [S(y | y \in Left) + S(y | y \in Right)]$$&lt;/p&gt;
+&lt;p&gt;$$ y \in
+\begin{cases}
+Left, &amp;amp; f(x) &amp;lt; \delta \
+Right, &amp;amp; f(x) &amp;gt;= \delta \
+\end{cases}$$&lt;/p&gt;
+&lt;p&gt;上述公式中 $F$ 表示特征函数集合，$f$ 表示选取到的特征函数(即利用随机到的特征点计算 Shape-index 特征)，$\delta$ 表示随机生成的阈值，$S$ 用来刻画样本点之间的相似度或者样本集合的熵(论文中采用了方差)。针对每个节点，训练数据 $(X, Y)$ 将会被分成两部分 $(X_1, Y_1)$ 和 $(X_2, Y_2)$，我们期望左右子树中的样本数据具有相同的模式($Y$ 的分布尽量固定下来，熵越小？)，这个论文中用了方差来刻画，所以选择特征函数 $f$ 时，我们希望方差减小最大。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="randomtree" src="https://luoyetx.github.io/images/2015/randomtree.png"&gt;&lt;/p&gt;
+&lt;p&gt;随机树的每个节点都采用这种方法训练，而每棵随机树都是相互独立训练的，训练过程都是一样的，这样单个关键点的随机森林就训练完毕了。&lt;/p&gt;
+&lt;h4&gt;全局线性回归训练&lt;/h4&gt;
+&lt;p&gt;按照常理，我们可以在随机树的叶子节点上存储预测的形变，测试时可以将随机森林中每棵随机树的预测输出做平均或者加权平均，然而 3000fps 并没有这样做，它将随机树的输出表示成一个二值特征(详情见上面的图)，将所有随机树的二值特征前后连接起来组成一个二值特征，即 LBF 特征。论文中，利用这个特征做了一次线性回归，将形变作为预测目标，训练一个线性回归器来做预测。&lt;/p&gt;
+&lt;p&gt;$$W_t = \underset{W_t}{\operatorname{argmin}} |{\Delta S - W_t \cdot lbf}|_2 + \lambda |W_t|_2$$&lt;/p&gt;
+&lt;p&gt;线性回归可以用如上公式表示，$\Delta S$ 形变目标，$lbf$ 表示特征，$W_t$ 是线性回归的参数，$\lambda$ 用来抑制模型，防止出现过拟合。预测时采用下面的公式&lt;/p&gt;
+&lt;p&gt;$$\Delta S = W^t \cdot lbf$$&lt;/p&gt;
+&lt;p&gt;在 3000fps 论文中，多级级联回归的方法的每一级都可以按如上所讲的拆分两个部分，利用随机森林提取局部二值特征，再利用局部二值特征做全局线性回归预测形状增量 $\Delta S$。&lt;/p&gt;
+&lt;h4&gt;关于 $S^0$&lt;/h4&gt;
+&lt;p&gt;在之前的讨论中，我们并没有说明 $\Delta S$ 具体是绝对形状增量还是相对形状增量。在实际情况中，我们需要 $\Delta S$ 为相对形状增量，因为绝对形状的位置是相对于整个图像的，我们无法对数据的绝对形变的分布做约束(绝对形变虽然可以抹去位置的绝对信息，但人脸框的尺度无法约束)。在提取局部二值特征时，我们需要绝对形状下的图像像素信息，而在预测得到的则是相对形状增量，而这两者可以通过人脸框做相互之间的转换。&lt;/p&gt;
+&lt;p&gt;所有形变 $\Delta S$ 均是相对于当前形状而言，通过级联的方式叠加在一起，而初始形状 $S_0$ 与模型预测本身无关，但是这个 $S_0$ 模型预测过程中起来关键性作用。我们假设预测样本理论上的真实形状为 $S_g$，那么 $S_0$ 和 $S_g$ 两者之间的差异的大小将直接影响到预测结果的准确性。3000fps 中采用了训练样本的平均形状作为初始形状，而 RCPR 则选择从训练样本中随机选择初始形状。&lt;/p&gt;
+&lt;p&gt;一般来说，$S_0$ 是相对形状通过人脸框转变为绝对形状对应到当前的人脸中，那么人脸框的尺度对 $S_0$ 与 $S_g$ 之间的差异也起到了决定性的作用，所以我们一般都需要用相同的人脸检测方法来标记训练图像和预测图像上的人脸框，保证两者的人脸框尺度，从而提高 $S_0$ 的准确性。但是我们不得不承认算法本身仍旧受到 $S_0$ 很大的影响。包括 RCPR 和 ESR 方法也同样受制于 $S_0$。相比较而言，深度学习方法则没有太大的影响，一般可以先通过网络来预测得到 $S_0$，这时的 $S_0$ 和 $S_g$ 之间的误差能够做到非常小，进而再在 $S_0$ 的基础上做细微的修正，提高精度，深度级联卷积网络预测关键点就是采用了这个思路。虽然深度学习的方法能够摆脱 $S_0$ 的限制，但它仍然受制于人脸框的尺度，而且尺度对其模型的预测影响比其他传统方法也好不到哪里去。&lt;/p&gt;
+&lt;h3&gt;论文实现&lt;/h3&gt;
+&lt;p&gt;论文作者并没有开放源代码出来，但是已经有同学用 Matlab 实现了论文，并且开源到了 github 平台，项目地址在&lt;a href="https://github.com/jwyang/face-alignment"&gt;这里&lt;/a&gt;。同时也有同学参照 Matlab 代码利用 C++ 重新实现了一遍，项目地址在&lt;a href="https://github.com/yulequan/face-alignment-in-3000fps"&gt;这里&lt;/a&gt;。我参考了这两份代码自己采用 C++ 重新实现了论文中的方法。&lt;/p&gt;
+&lt;h4&gt;数据采集与预处理&lt;/h4&gt;
+&lt;p&gt;搞机器学习的永远少不了跟数据打交道，还好在人脸关键点检测这方面的开放数据还是蛮多的，参考论文中使用到的数据集，我们可以从&lt;a href="http://ibug.doc.ic.ac.uk/resources/facial-point-annotations/"&gt;这里&lt;/a&gt;下载到人脸 68 个点的数据集，可供我们做训练和测试用。有了现成的数据就省去了我们自己搜刮数据这一步，而且数据集中的数据格式还是非常规范的。&lt;/p&gt;
+&lt;p&gt;数据的预处理一般都是对我们得到的数据的再加工，在送给模型做训练之前我们还需要打磨打磨我们的数据。这里我们需要对人脸框做重新定位，上面已经讨论过人脸框的尺度对 $S_0$ 的影响，我们应该在训练和检测的过程中采用相同的人脸检测器来标识人脸框，现在开源出来的用得最多的还是 OpenCV 自带的 VJ 检测器(虽然是个废=。=)。利用 VJ 检测器可以锁定关键点标识的人脸的位置，给出人脸框。&lt;/p&gt;
+&lt;p&gt;我们的训练数据大致就是人脸图像，人脸框，人脸真实形状这三种数据，$X = { I, BBox }$, $Y = { Shape }$。之前和一些同学交流实现时，有些同学出现的爆内存的情况，大致上是将训练图像全部载入到内存后做了一些处理。导致内存飙升致程序崩溃。其实考虑图像 $I$，我们并不需要整幅图像作为训练数据，一般只要将人脸附近一块图像区域截取出来作为 $I$ 即可，这本身并不影响我们的训练数据，只要相应的重新计算关键点位置即可，因为数据集中的图片大多都是高清无码大图，人脸可能只占图像的一小块，这种方法能够减少非常多的内存消耗。同时我们应该批量处理数据，一口气将所有数据载入内存而后在处理的方式会把程序的最大内存消耗开到最大，同样有可能出现崩溃。当然，如果你的程序是 64 位的，机子内存又是杠杠的，那就完全不用理会上面的这些优化操作了。&lt;/p&gt;
+&lt;h4&gt;Data Augmentation&lt;/h4&gt;
+&lt;p&gt;Data Augmentation 在现有数据集不够充足时，通过变换已有的数据来增加数据集的大小，可谓是一种经济又环保的方法。根据不同的数据和模型，我们可以采用不同的变换手段，如果目标具有对称不变性，那么水平翻转图像将是一种不错的手段，常见的还有旋转图像来增加数据集。针对人脸关键点定位，显然我们左右翻转人脸并不会影响人脸的结构(左右眼交错一下也没什么影响)，包括轻微旋转人脸也同样能够增加训练数据集。&lt;/p&gt;
+&lt;p&gt;在训练过程中，我们需要给每个训练样本一个初始形状，这个初始形状可以从样本中随机选取，通过选取多个初始形状，我们同样可以达到增加数据集的效果。&lt;/p&gt;
+&lt;h4&gt;随机森林的并行训练&lt;/h4&gt;
+&lt;p&gt;随机森林的构造和训练并没有什么特别之处，这里主要谈谈如何加速训练过程。我们知道随机森林中的每棵随机树都是相互独立训练的，而每个关键点对应的随机森林也是相互独立的，这样，我们就可以并行训练随机树。考虑到并行计算的编码问题，我们并不需要通过多线程并发的方式来实现并行计算，这里可以使用到 &lt;a href="http://openmp.org/wp/"&gt;OpenMP&lt;/a&gt; 来实现并行计算，OpenMP 会将我们的代码通过它自定义的语法将其并行化，底层用的是系统级线程的实现方式，现在的编译器已经都内置了对 OpenMP 的支持，所以代码移植也很方便。OpenMP 的性能可能没有直接使用系统极线程的方式来得高，但是它简单易学，使用非常方便，可能在线程切换方面比直接使用系统线程库来的高效，但是对于编码而言却是非常简单，几条语句就可以将原本串行的代码变成并行，修改代码的代价非常低。&lt;/p&gt;
+&lt;h4&gt;全局线性回归&lt;/h4&gt;
+&lt;p&gt;训练完随机森林后，我们就能够得到训练数据的 LBF 特征了，根据这个 LBF 特征在加上相对形状增量这个预测目标，我们便可以训练全局线性回归模型了。由于大量的训练数据，再加上 LBF 特征的高度稀疏，论文中提到了利用双坐标下降的方法来训练高度稀疏的线性模型，本人对这个并不是十分了解，还好发明这个方法的人专门写了一套求解线性模型的库，并开源在 github 上，项目名称是 &lt;a href="https://github.com/cjlin1/liblinear"&gt;liblinear&lt;/a&gt;。这个库本身采用 C++ 编写，也提供了很对语言的绑定，这里我们可以直接采用它的 C++ 代码，根据相关文档准备好相应的数据，直接调用就可求解到模型参数，使用起来还是很方便的。&lt;/p&gt;
+&lt;h4&gt;结果&lt;/h4&gt;
+&lt;p&gt;3000fps 中的算法是一个级联的模型，每一级是随机森林加上全局回归，通过多次级联来求得相对形状增量，从而计算得到最终的形状。下面是我自己训练好的模型的预测结果。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="3000fps-result1" src="https://luoyetx.github.io/images/2015/3000fps-result1.png"&gt;
+&lt;img alt="3000fps-result2" src="https://luoyetx.github.io/images/2015/3000fps-result2.png"&gt;&lt;/p&gt;
+&lt;h3&gt;总结&lt;/h3&gt;
+&lt;p&gt;3000fps 这篇论文所用的方法除了有比较好的精度，关键在于其方法的预测速度相当的快。论文中采用的快速模型能够达到 3000fps 的速度预测 68 个点，速度非常恐怖。本人实现的结果是 300fps，CPU 单核 3.2GHz，内存 8G，论文中并没有提到其使用到的机器性能如何，只提到了其实现方法只使用了单核，我认为论文中的实现应该是在底层做过相应的优化才能达到如此高的速度，当然我们也没有必要可以追求速度，能够达到实时的性能就可以了(不过，谁都会认为越快越好)。&lt;/p&gt;
+&lt;h3&gt;参考资料&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href="http://research.microsoft.com/en-us/people/yichenw/cvpr14_facealignment.pdf"&gt;Face Alignment at 3000 FPS via Regressing Local Binary Features&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://mmlab.ie.cuhk.edu.hk/archive/CNN_FacePoint.htm"&gt;Deep Convolutional Network Cascade for Facial Point Detection&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://research.microsoft.com/pubs/192097/cvpr12_facealignment.pdf"&gt;Face Alignment by Explicit Shape Regression&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="http://www.vision.caltech.edu/xpburgos/ICCV13/"&gt;Robust face landmark estimation under occlusion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/luoyetx/deep-landmark"&gt;deeplandmark&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/jwyang/face-alignment"&gt;Matlab 实现的 3000fps&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href="https://github.com/yulequan/face-alignment-in-3000fps"&gt;C++ 实现的 3000fps&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;</content><category term="Machine Learning"></category></entry><entry><title>Caffe 小试牛刀</title><link href="https://luoyetx.github.io/little-caffe.html" rel="alternate"></link><published>2015-04-11T00:00:00+08:00</published><updated>2015-04-11T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-04-11:/little-caffe.html</id><summary type="html">&lt;p&gt;在 &lt;a href="http://en.wikipedia.org/wiki/Deep_learning"&gt;Deep Learning&lt;/a&gt; 如此火的今天，&lt;a href="http://caffe.berkeleyvision.org/"&gt;Caffe&lt;/a&gt; 的出现使得我们接触深度学习的门槛变得异常之低。在自己的笔记本或者远端服务器上部署这个 Caffe 框架也是异常简单，照着官方给出的安装文档可以在大部分 Linux 发行版和 Mac OS 上安装好这个深度学习框架。官方暂时没有给出 Windows 版本的 Caffe，不过社区已经有人移植到了 Windows 上，项目地址在 &lt;a href="https://github.com/niuzhiheng/caffe"&gt;github&lt;/a&gt; 上。我们尽量还是在 *nix 平台上部署 Caffe 框架。&lt;/p&gt;
+&lt;h3&gt;Caffe 简介&lt;/h3&gt;
+&lt;p&gt;Caffe 是一个清晰而高效的深度 &lt;a href="http://en.wikipedia.org/wiki/Convolutional_neural_network"&gt;CNN&lt;/a&gt; 学习框架，其作者是博士毕业于 UC Berkeley 的贾扬清，目前在Google工作。Caffe 支持命令行，并提供了 Python 和 Matlab 接口方便开发者和研究人员调用，而且其框架本身可以在 CPU …&lt;/p&gt;</summary><content type="html">&lt;p&gt;在 &lt;a href="http://en.wikipedia.org/wiki/Deep_learning"&gt;Deep Learning&lt;/a&gt; 如此火的今天，&lt;a href="http://caffe.berkeleyvision.org/"&gt;Caffe&lt;/a&gt; 的出现使得我们接触深度学习的门槛变得异常之低。在自己的笔记本或者远端服务器上部署这个 Caffe 框架也是异常简单，照着官方给出的安装文档可以在大部分 Linux 发行版和 Mac OS 上安装好这个深度学习框架。官方暂时没有给出 Windows 版本的 Caffe，不过社区已经有人移植到了 Windows 上，项目地址在 &lt;a href="https://github.com/niuzhiheng/caffe"&gt;github&lt;/a&gt; 上。我们尽量还是在 *nix 平台上部署 Caffe 框架。&lt;/p&gt;
+&lt;h3&gt;Caffe 简介&lt;/h3&gt;
+&lt;p&gt;Caffe 是一个清晰而高效的深度 &lt;a href="http://en.wikipedia.org/wiki/Convolutional_neural_network"&gt;CNN&lt;/a&gt; 学习框架，其作者是博士毕业于 UC Berkeley 的贾扬清，目前在Google工作。Caffe 支持命令行，并提供了 Python 和 Matlab 接口方便开发者和研究人员调用，而且其框架本身可以在 CPU/GPU 之间无缝切换，非常方便。Caffe 的详细文档在&lt;a href="http://caffe.berkeleyvision.org/installation.html"&gt;这里&lt;/a&gt;。根据官方文档安装完各种依赖库后就可以编译 Caffe 框架了，有些依赖库可能软件源中的版本过低或者根本就没有，可以自己源码编译安装。&lt;/p&gt;
+&lt;h3&gt;Kaggle 上的数字识别&lt;/h3&gt;
+&lt;p&gt;&lt;a href="https://www.kaggle.com/"&gt;Kaggle&lt;/a&gt; 是一个数据竞赛平台，提供各种需求和数据给全世界的参赛者。其中有一个比赛项目是 &lt;a href="https://www.kaggle.com/c/digit-recognizer"&gt;Digit Recognizer&lt;/a&gt;，就是著名的手写体数字识别。&lt;a href="http://en.wikipedia.org/wiki/Yann_LeCun"&gt;Yann LeCun&lt;/a&gt; 提出的 &lt;a href="http://yann.lecun.com/exdb/mnist/"&gt;LeNet&lt;/a&gt; 已经能够很好地解决这个问题了，Caffe 官方的 Example 中就有 LeNet 的实现。我们就利用这个 CNN 网络模型再加上 Kaggle 提供的数据来走一边深度学习的流程，从数据的获得与清理，CNN 模型的训练，再到最后的数据预测。&lt;/p&gt;
+&lt;h3&gt;利用 Caffe 解决 Kaggle 上的数字识别&lt;/h3&gt;
+&lt;p&gt;Kaggle 给这个项目提供了两个数据，分别为训练数据和测试数据。但是我们拿到的数据并不是图片，而是 csv 格式的数据，至于数据的具体内容，Kaggle 官方有详细的说明，可以参考&lt;a href="https://www.kaggle.com/c/digit-recognizer/data"&gt;这里&lt;/a&gt;。&lt;/p&gt;
+&lt;h4&gt;csv 数据预处理&lt;/h4&gt;
+&lt;p&gt;Caffe 在训练时可以采用各种格式的输入数据(不同的 Data 层)，详细的格式参见官方&lt;a href="http://caffe.berkeleyvision.org/tutorial/layers.html#data-layers"&gt;文档&lt;/a&gt;。这里我采用了 HDF5 格式的输入数据，下面的代码将 csv 格式的数据转换成了 HDF5 格式的数据。代码采用了 Python 编写，利用 &lt;a href="http://pandas.pydata.org/"&gt;Pandas&lt;/a&gt; 来读取 cvs 数据，并用 &lt;a href="http://www.h5py.org/"&gt;h5py&lt;/a&gt; 来写 HDF5 格式的数据。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/env python&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;logging&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pd&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;h5py&lt;/span&gt;
+
+
+&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;data&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;join&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;
+&lt;span class="n"&gt;TRAIN&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;train.csv&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;train_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;mnist_train.h5&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;test_file&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;mnist_test.h5&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# logger&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getLogger&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setLevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;StreamHandler&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setLevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;formatter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Formatter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%(asctime)s&lt;/span&gt;&lt;span class="s1"&gt; - &lt;/span&gt;&lt;span class="si"&gt;%(levelname)s&lt;/span&gt;&lt;span class="s1"&gt; - &lt;/span&gt;&lt;span class="si"&gt;%(message)s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setFormatter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;formatter&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;addHandler&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# load data from train.csv&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Load data from &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;TRAIN&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;TRAIN&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;values&lt;/span&gt;
+
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Get &lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt; Rows in dataset&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+
+&lt;span class="c1"&gt;# random shuffle&lt;/span&gt;
+&lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;random&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;shuffle&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# all dataset&lt;/span&gt;
+&lt;span class="n"&gt;labels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[:,&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;images&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[:,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;:]&lt;/span&gt;
+
+&lt;span class="c1"&gt;# process data&lt;/span&gt;
+&lt;span class="n"&gt;images&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;images&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reshape&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;images&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;28&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;28&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;images&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;images&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mf"&gt;255.&lt;/span&gt;
+
+&lt;span class="c1"&gt;# train dataset number&lt;/span&gt;
+&lt;span class="n"&gt;trainset&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt; &lt;span class="mi"&gt;3&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mi"&gt;4&lt;/span&gt;
+
+&lt;span class="c1"&gt;# train dataset&lt;/span&gt;
+&lt;span class="n"&gt;labels_train&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="p"&gt;[:&lt;/span&gt;&lt;span class="n"&gt;trainset&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;images_train&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;images&lt;/span&gt;&lt;span class="p"&gt;[:&lt;/span&gt;&lt;span class="n"&gt;trainset&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="c1"&gt;# test dataset&lt;/span&gt;
+&lt;span class="n"&gt;labels_test&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;trainset&lt;/span&gt;&lt;span class="p"&gt;:]&lt;/span&gt;
+&lt;span class="n"&gt;images_test&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;images&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;trainset&lt;/span&gt;&lt;span class="p"&gt;:]&lt;/span&gt;
+
+&lt;span class="c1"&gt;# write to hdf5&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;train_file&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;remove&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;train_file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;test_file&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;remove&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;test_file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Write train dataset to &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;train_file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;h5py&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;File&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;train_file&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;labels_train&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;astype&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;float32&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;data&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;images_train&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;astype&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;float32&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Write test dataset to &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;test_file&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="n"&gt;h5py&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;File&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;test_file&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;label&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;labels_test&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;astype&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;float32&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;data&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;images_test&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;astype&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;float32&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Done&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;在这里，我把数据分割成了两部分，分别作为训练数据和测试数据(与 Kaggle 提供的 test.csv 数据不同，这里的测试数据是带有 label 的)，方便测试模型的准确性。&lt;/p&gt;
+&lt;h4&gt;CNN 网络的训练&lt;/h4&gt;
+&lt;p&gt;这里直接用 Caffe 自带的 Example 中的模型。网络的定义可以在 Caffe 源码目录中找到，这里我就不全贴了，只贴一下输入的 DataLayer。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;layer {&lt;/span&gt;
+&lt;span class="err"&gt;  name: &amp;quot;mnist&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  type: &amp;quot;HDF5Data&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  top: &amp;quot;data&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  top: &amp;quot;label&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  include {&lt;/span&gt;
+&lt;span class="err"&gt;    phase: TRAIN&lt;/span&gt;
+&lt;span class="err"&gt;  }&lt;/span&gt;
+&lt;span class="err"&gt;  hdf5_data_param {&lt;/span&gt;
+&lt;span class="err"&gt;    source: &amp;quot;data/mnist_train.txt&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;    batch_size: 64&lt;/span&gt;
+&lt;span class="err"&gt;  }&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;layer {&lt;/span&gt;
+&lt;span class="err"&gt;  name: &amp;quot;mnist&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  type: &amp;quot;HDF5Data&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  top: &amp;quot;data&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  top: &amp;quot;label&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;  include {&lt;/span&gt;
+&lt;span class="err"&gt;    phase: TEST&lt;/span&gt;
+&lt;span class="err"&gt;  }&lt;/span&gt;
+&lt;span class="err"&gt;  hdf5_data_param {&lt;/span&gt;
+&lt;span class="err"&gt;    source: &amp;quot;data/mnist_test.txt&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;    batch_size: 100&lt;/span&gt;
+&lt;span class="err"&gt;  }&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;其中的 data/mnist_train.txt 和 data/mnist_test.txt 记录数据文件的路径。下图是我用 &lt;a href="http://www.graphviz.org/"&gt;Graphviz&lt;/a&gt; 画的 LeNet 网络图。&lt;/p&gt;
+&lt;p&gt;{% image fancybox center /assert/img/2015/04/lenet.jpg %}&lt;/p&gt;
+&lt;p&gt;有了数据和网络定义，我们还需要训练网络时的参数配置，这些配置数据写在 lenet_solver.prototxt 中。具体含义可以参考&lt;a href="http://caffe.berkeleyvision.org/tutorial/solver.html"&gt;文档&lt;/a&gt;。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;# The train/test net protocol buffer definition&lt;/span&gt;
+&lt;span class="err"&gt;# 网络的定义文件路径&lt;/span&gt;
+&lt;span class="c"&gt;net: &amp;quot;model/lenet_train_test.prototxt&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;# test_iter specifies how many forward passes the test should carry out.&lt;/span&gt;
+&lt;span class="err"&gt;# In the case of MNIST, we have test batch size 100 and 100 test iterations,&lt;/span&gt;
+&lt;span class="err"&gt;# covering the full 10,000 testing images.&lt;/span&gt;
+&lt;span class="err"&gt;# 每次测试时迭代 100 次&lt;/span&gt;
+&lt;span class="c"&gt;test_iter: 100&lt;/span&gt;
+&lt;span class="err"&gt;# Carry out testing every 500 training iterations.&lt;/span&gt;
+&lt;span class="err"&gt;# 训练网络模型时，每迭代 500 次作一次测试&lt;/span&gt;
+&lt;span class="c"&gt;test_interval: 500&lt;/span&gt;
+&lt;span class="err"&gt;# The base learning rate, momentum and the weight decay of the network.&lt;/span&gt;
+&lt;span class="err"&gt;# 初始学习率，权值衰减&lt;/span&gt;
+&lt;span class="c"&gt;base_lr: 0.01&lt;/span&gt;
+&lt;span class="c"&gt;momentum: 0.9&lt;/span&gt;
+&lt;span class="c"&gt;weight_decay: 0.0005&lt;/span&gt;
+&lt;span class="err"&gt;# The learning rate policy&lt;/span&gt;
+&lt;span class="err"&gt;# 网络学习参数的衰减方式及其参数&lt;/span&gt;
+&lt;span class="c"&gt;lr_policy: &amp;quot;inv&amp;quot;&lt;/span&gt;
+&lt;span class="c"&gt;gamma: 0.0001&lt;/span&gt;
+&lt;span class="c"&gt;power: 0.75&lt;/span&gt;
+&lt;span class="err"&gt;# Display every 100 iterations&lt;/span&gt;
+&lt;span class="err"&gt;# 每迭代 100 次显示网络的输出(loss 等数据)&lt;/span&gt;
+&lt;span class="c"&gt;display: 100&lt;/span&gt;
+&lt;span class="err"&gt;# The maximum number of iterations&lt;/span&gt;
+&lt;span class="err"&gt;# 训练迭代次数&lt;/span&gt;
+&lt;span class="c"&gt;max_iter: 10000&lt;/span&gt;
+&lt;span class="err"&gt;# snapshot intermediate results&lt;/span&gt;
+&lt;span class="err"&gt;# 每隔 5000 次迭代就把网络参数和网络的训练状态保存到文件系统&lt;/span&gt;
+&lt;span class="c"&gt;snapshot: 5000&lt;/span&gt;
+&lt;span class="c"&gt;snapshot_prefix: &amp;quot;model/&amp;quot;&lt;/span&gt;
+&lt;span class="err"&gt;# solver mode: CPU or GPU&lt;/span&gt;
+&lt;span class="err"&gt;# 采用 CPU&lt;/span&gt;
+&lt;span class="c"&gt;solver_mode: CPU&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;caffe train --solver=model/lenet_solver.prototxt&lt;/code&gt; 这条命令开始训练网络。下面是训练时的部分输出。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;I0411 21:21:04.364305 31883 solver.cpp:266] Iteration 0, Testing net (#0)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:07.918603 31883 solver.cpp:315]     Test net output #0: accuracy = 0.0966&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:07.918660 31883 solver.cpp:315]     Test net output #1: loss = 2.3217 (* 1 = 2.3217 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:07.979472 31883 solver.cpp:189] Iteration 0, loss = 2.39515&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:07.979532 31883 solver.cpp:204]     Train net output #0: loss = 2.39515 (* 1 = 2.39515 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:07.979560 31883 solver.cpp:464] Iteration 0, lr = 0.01&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:13.373544 31883 solver.cpp:189] Iteration 100, loss = 0.309522&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:13.373603 31883 solver.cpp:204]     Train net output #0: loss = 0.309522 (* 1 = 0.309522 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:13.373621 31883 solver.cpp:464] Iteration 100, lr = 0.00992565&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:18.770283 31883 solver.cpp:189] Iteration 200, loss = 0.342084&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:18.770339 31883 solver.cpp:204]     Train net output #0: loss = 0.342084 (* 1 = 0.342084 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:18.770357 31883 solver.cpp:464] Iteration 200, lr = 0.00985258&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:24.270835 31883 solver.cpp:189] Iteration 300, loss = 0.178883&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:24.270900 31883 solver.cpp:204]     Train net output #0: loss = 0.178883 (* 1 = 0.178883 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:24.270920 31883 solver.cpp:464] Iteration 300, lr = 0.00978075&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:29.655320 31883 solver.cpp:189] Iteration 400, loss = 0.0702766&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:29.655375 31883 solver.cpp:204]     Train net output #0: loss = 0.0702766 (* 1 = 0.0702766 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:29.655393 31883 solver.cpp:464] Iteration 400, lr = 0.00971013&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:35.007863 31883 solver.cpp:266] Iteration 500, Testing net (#0)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:38.496989 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9698&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:38.497042 31883 solver.cpp:315]     Test net output #1: loss = 0.0967276 (* 1 = 0.0967276 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:38.554558 31883 solver.cpp:189] Iteration 500, loss = 0.186758&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:38.554613 31883 solver.cpp:204]     Train net output #0: loss = 0.186758 (* 1 = 0.186758 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:38.554631 31883 solver.cpp:464] Iteration 500, lr = 0.00964069&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:43.980552 31883 solver.cpp:189] Iteration 600, loss = 0.112056&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:43.980610 31883 solver.cpp:204]     Train net output #0: loss = 0.112056 (* 1 = 0.112056 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:43.980628 31883 solver.cpp:464] Iteration 600, lr = 0.0095724&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:49.568586 31883 solver.cpp:189] Iteration 700, loss = 0.074904&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:49.568653 31883 solver.cpp:204]     Train net output #0: loss = 0.074904 (* 1 = 0.074904 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:49.568675 31883 solver.cpp:464] Iteration 700, lr = 0.00950522&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:54.960841 31883 solver.cpp:189] Iteration 800, loss = 0.220085&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:54.960911 31883 solver.cpp:204]     Train net output #0: loss = 0.220085 (* 1 = 0.220085 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:21:54.960932 31883 solver.cpp:464] Iteration 800, lr = 0.00943913&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:00.352416 31883 solver.cpp:189] Iteration 900, loss = 0.0172225&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:00.352488 31883 solver.cpp:204]     Train net output #0: loss = 0.0172226 (* 1 = 0.0172226 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:00.352511 31883 solver.cpp:464] Iteration 900, lr = 0.00937411&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:05.703879 31883 solver.cpp:266] Iteration 1000, Testing net (#0)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:09.199872 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9801&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:09.199944 31883 solver.cpp:315]     Test net output #1: loss = 0.0650562 (* 1 = 0.0650562 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:09.256795 31883 solver.cpp:189] Iteration 1000, loss = 0.118511&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:09.256847 31883 solver.cpp:204]     Train net output #0: loss = 0.118511 (* 1 = 0.118511 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:22:09.256867 31883 solver.cpp:464] Iteration 1000, lr = 0.00931012&lt;/span&gt;
+&lt;span class="err"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;...&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:26.140774 31883 solver.cpp:266] Iteration 9000, Testing net (#0)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:29.663858 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9898&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:29.663919 31883 solver.cpp:315]     Test net output #1: loss = 0.0369673 (* 1 = 0.0369673 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:29.715962 31883 solver.cpp:189] Iteration 9000, loss = 0.00257692&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:29.716016 31883 solver.cpp:204]     Train net output #0: loss = 0.00257717 (* 1 = 0.00257717 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:29.716032 31883 solver.cpp:464] Iteration 9000, lr = 0.00617924&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:35.261111 31883 solver.cpp:189] Iteration 9100, loss = 0.000706766&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:35.261175 31883 solver.cpp:204]     Train net output #0: loss = 0.000707015 (* 1 = 0.000707015 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:35.261193 31883 solver.cpp:464] Iteration 9100, lr = 0.00615496&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:40.733172 31883 solver.cpp:189] Iteration 9200, loss = 0.00721649&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:40.733232 31883 solver.cpp:204]     Train net output #0: loss = 0.00721672 (* 1 = 0.00721672 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:40.733252 31883 solver.cpp:464] Iteration 9200, lr = 0.0061309&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:46.430910 31883 solver.cpp:189] Iteration 9300, loss = 0.0106291&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:46.430974 31883 solver.cpp:204]     Train net output #0: loss = 0.0106294 (* 1 = 0.0106294 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:46.430991 31883 solver.cpp:464] Iteration 9300, lr = 0.00610706&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:52.084485 31883 solver.cpp:189] Iteration 9400, loss = 0.0217876&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:52.084548 31883 solver.cpp:204]     Train net output #0: loss = 0.0217879 (* 1 = 0.0217879 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:52.084563 31883 solver.cpp:464] Iteration 9400, lr = 0.00608343&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:30:57.599124 31883 solver.cpp:266] Iteration 9500, Testing net (#0)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:01.165457 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9908&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:01.165515 31883 solver.cpp:315]     Test net output #1: loss = 0.0361107 (* 1 = 0.0361107 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:01.221964 31883 solver.cpp:189] Iteration 9500, loss = 0.00431475&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:01.222023 31883 solver.cpp:204]     Train net output #0: loss = 0.00431501 (* 1 = 0.00431501 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:01.222040 31883 solver.cpp:464] Iteration 9500, lr = 0.00606002&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:06.748987 31883 solver.cpp:189] Iteration 9600, loss = 0.00301128&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:06.749049 31883 solver.cpp:204]     Train net output #0: loss = 0.00301154 (* 1 = 0.00301154 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:06.749068 31883 solver.cpp:464] Iteration 9600, lr = 0.00603682&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:12.305821 31883 solver.cpp:189] Iteration 9700, loss = 0.0178924&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:12.305883 31883 solver.cpp:204]     Train net output #0: loss = 0.0178927 (* 1 = 0.0178927 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:12.305903 31883 solver.cpp:464] Iteration 9700, lr = 0.00601382&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:18.102248 31883 solver.cpp:189] Iteration 9800, loss = 0.0116095&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:18.102319 31883 solver.cpp:204]     Train net output #0: loss = 0.0116097 (* 1 = 0.0116097 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:18.102339 31883 solver.cpp:464] Iteration 9800, lr = 0.00599102&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:24.297734 31883 solver.cpp:189] Iteration 9900, loss = 0.0111304&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:24.297801 31883 solver.cpp:204]     Train net output #0: loss = 0.0111307 (* 1 = 0.0111307 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:24.297826 31883 solver.cpp:464] Iteration 9900, lr = 0.00596843&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:29.688841 31883 solver.cpp:334] Snapshotting to model/_iter_10000.caffemodel&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:29.713232 31883 solver.cpp:342] Snapshotting solver state to model/_iter_10000.solverstate&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:29.741745 31883 solver.cpp:248] Iteration 10000, loss = 0.0402425&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:29.741792 31883 solver.cpp:266] Iteration 10000, Testing net (#0)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:33.262156 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9902&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:33.262218 31883 solver.cpp:315]     Test net output #1: loss = 0.0349098 (* 1 = 0.0349098 loss)&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:33.262231 31883 solver.cpp:253] Optimization Done.&lt;/span&gt;
+&lt;span class="err"&gt;I0411 21:31:33.262240 31883 caffe.cpp:134] Optimization Done.&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们可以发现到后面的准确率达到了 99% 以上，我怀疑是过拟合了。这里用 CPU(Intel(R) Core(TM) i5-4200U CPU @ 1.60GHz) 训练的时间只要 10 分钟左右，速度还是相当快的。这样就能得到训练好的网络参数用来做数据预测。&lt;/p&gt;
+&lt;h4&gt;预测 test.csv 中的数据&lt;/h4&gt;
+&lt;p&gt;test.csv 文件的数据格式与 train.csv 差不多，只是没有 label，因为这些 label 需要我们来预测。我采用了 Python 作预测，Caffe 为 Python 提供了相应的借口，编译 Caffe 时记得顺带编译 Python 模块，当然前提是你先装好相应的依赖库，numpy 肯定逃不掉，具体过程请看&lt;a href="http://caffe.berkeleyvision.org/installation.html#python"&gt;文档&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;我们先从 test.csv 中加载图像数据，做相应的预处理后交给 Caffe 做预测。初始化 Caffe 时需要上一步中的网络模型和训练得到的网络模型参数。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="ch"&gt;#!/usr/bin/env python&lt;/span&gt;
+
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;os&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;logging&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pd&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;caffe&lt;/span&gt;
+
+
+&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;data&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;MODEL_ROOT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;model&amp;#39;&lt;/span&gt;
+&lt;span class="n"&gt;join&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;
+&lt;span class="n"&gt;TEST&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;test.csv&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;OUTPUT&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;DATA_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;result.csv&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;CAFFE_MODEL&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;MODEL_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;mnist.caffemodel&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;CAFFE_SOLVER&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;MODEL_ROOT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;lenet.prototxt&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="n"&gt;logger&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;getLogger&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setLevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;StreamHandler&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setLevel&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;formatter&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;logging&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Formatter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="si"&gt;%(asctime)s&lt;/span&gt;&lt;span class="s1"&gt; - &lt;/span&gt;&lt;span class="si"&gt;%(levelname)s&lt;/span&gt;&lt;span class="s1"&gt; - &lt;/span&gt;&lt;span class="si"&gt;%(message)s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;setFormatter&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;formatter&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;addHandler&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# load test dataset&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Load test dataset from &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;TEST&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;df&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;read_csv&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;TEST&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;df&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;values&lt;/span&gt;
+
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;reshape&lt;/span&gt;&lt;span class="p"&gt;((&lt;/span&gt;&lt;span class="nb"&gt;len&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="mi"&gt;28&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;28&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+&lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="mf"&gt;255.&lt;/span&gt;
+
+&lt;span class="c1"&gt;# set caffe net&lt;/span&gt;
+&lt;span class="n"&gt;net&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;caffe&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Classifier&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;CAFFE_SOLVER&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;CAFFE_MODEL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# predict&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Start predict&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="n"&gt;BATCH_SIZE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;100&lt;/span&gt;
+&lt;span class="n"&gt;iter_k&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;
+&lt;span class="n"&gt;labels&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
+&lt;span class="k"&gt;while&lt;/span&gt; &lt;span class="kc"&gt;True&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ITER &lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;iter_k&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;batch&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;iter_k&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;BATCH_SIZE&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;iter_k&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;BATCH_SIZE&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;batch&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+        &lt;span class="k"&gt;break&lt;/span&gt;
+    &lt;span class="n"&gt;result&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;net&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;predict&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;batch&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;argmax&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;result&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="n"&gt;iter_k&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;iter_k&lt;/span&gt; &lt;span class="o"&gt;+&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Prediction Done&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+&lt;span class="c1"&gt;# write to file&lt;/span&gt;
+&lt;span class="n"&gt;logger&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;info&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Save result to &lt;/span&gt;&lt;span class="si"&gt;%s&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;OUTPUT&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;path&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;exists&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;OUTPUT&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;os&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;remove&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;OUTPUT&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;OUTPUT&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;w&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+    &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ImageId,Label&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+    &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;idx&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;label&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;enumerate&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;labels&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;idx&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;,&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;str&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;label&lt;/span&gt;&lt;span class="p"&gt;))&lt;/span&gt;
+        &lt;span class="n"&gt;fd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="se"&gt;\n&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这里，我把预测结果按照 Kaggle 的要求写到了文件中，然后上传到 Kaggle 的评分系统中。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="caffe-kaggle-result" src="https://luoyetx.github.io/images/2015/caffe-kaggle-result.png"&gt;&lt;/p&gt;
+&lt;p&gt;结果准确率有 95.5%，还是相当不错的。&lt;/p&gt;
+&lt;h3&gt;小结&lt;/h3&gt;
+&lt;p&gt;DL 已经相当流行了，Caffe 可以大大降低了入门的门槛。大牛们的论文都很开放，也开源了很多代码出来，方便我们这些门外汉学习和入门。大家有兴趣可以多接触接触。另外，我感觉到训练数据在 DL 的重要性可能已经超过了 DL 网络模型本身(虽然 DL 到现在也还是很难解释清楚其中的机理，但是它的成果还是能傲视群雄)。&lt;/p&gt;</content><category term="Machine Learning"></category></entry></feed>

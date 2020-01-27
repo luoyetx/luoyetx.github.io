@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Redis 源码之简单动态字符串</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/redis-yuan-ma-zhi-jian-dan-dong-tai-zi-fu-chuan.html" rel="bookmark"
+         title="Permalink to Redis 源码之简单动态字符串">Redis 源码之简单动态字符串</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2015-03-14T00:00:00+08:00">
+      Sat 14 March 2015
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/technology.html">Technology</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Redis 并没有使用 C 中的字符数组，而是自己实现了一个简单动态字符串 SDS 结构。Redis 利用一块连续内存空间实现了动态字符串（字符串也是以'\0'结束，与部分 C 字符串操作函数兼容）。与 sds 相关的源码在 sds.h 和 sds.c 两个文件中。</p>
+<h4>SDS 结构定义</h4>
+<p><img alt="redis-sdshr" src="https://luoyetx.github.io/images/2015/redis-sdshr.jpg"></p>
+<p>Redis 中定义了 sds 类型，实际为 char* 类型，结构体 sdshdr 可以理解为 sds 类型的头信息。sdshdr 和 sds 在内存中是一个整体，由 zmalloc(Redis 自己实现的一个 malloc 版本) 申请得到。</p>
+<div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="kt">char</span> <span class="o">*</span><span class="n">sds</span><span class="p">;</span> <span class="c1">// sds 类型，实际等于 sdshdr 结构体中的 buf</span>
+
+<span class="k">struct</span> <span class="n">sdshdr</span> <span class="p">{</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">len</span><span class="p">;</span> <span class="c1">// 整个字节数组buf的长度，实际 buf 指向的内存区域有 len+1 个字节（&#39;\0&#39;永远占一个字节）</span>
+    <span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">free</span><span class="p">;</span> <span class="c1">// buf 中剩余的字节数</span>
+    <span class="kt">char</span> <span class="n">buf</span><span class="p">[];</span> <span class="c1">// 指向字节数组的指针</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<h4>SDS 基本操作函数</h4>
+<h5>sds 字符串的创建与释放</h5>
+<p>Redis 在初始化 sds 字符串时就会为 buf 申请一块连续的内存，紧跟在 buf 后面。</p>
+<div class="highlight"><pre><span></span><span class="cm">/* Create a new sds string with the content specified by the &#39;init&#39; pointer</span>
+<span class="cm"> * and &#39;initlen&#39;.</span>
+<span class="cm"> * If NULL is used for &#39;init&#39; the string is initialized with zero bytes.</span>
+<span class="cm"> * 利用 init 指针所指向的内容和 initlen 指定的长度来初始化 sds 字符串</span>
+<span class="cm"> * 如果 init 为 NULL，则用字节&#39;\0&#39;来填充 sds 字符串</span>
+<span class="cm"> *</span>
+<span class="cm"> * The string is always null-termined (all the sds strings are, always) so</span>
+<span class="cm"> * even if you create an sds string with:</span>
+<span class="cm"> * 这个字符串永远都是以 NULL 结尾，哪怕你用下面的方式调用</span>
+<span class="cm"> *</span>
+<span class="cm"> * mystring = sdsnewlen(&quot;abc&quot;,3);</span>
+<span class="cm"> *</span>
+<span class="cm"> * You can print the string with printf() as there is an implicit \0 at the</span>
+<span class="cm"> * end of the string. However the string is binary safe and can contain</span>
+<span class="cm"> * \0 characters in the middle, as the length is stored in the sds header.</span>
+<span class="cm"> * 由于字符串以&#39;\0&#39;结尾，你可以使用 printf() 来打印字符串，但字符串本身是二进制安全的，</span>
+<span class="cm"> * 可以存放字节0，实际存放的字节数在 sds 头信息中 */</span>
+<span class="n">sds</span> <span class="nf">sdsnewlen</span><span class="p">(</span><span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">init</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">initlen</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">sdshdr</span> <span class="o">*</span><span class="n">sh</span><span class="p">;</span>
+
+    <span class="c1">// 申请一整块内存，内存前几个字节存放 sdshdr 信息，后面的即为字节数组</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">init</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">sh</span> <span class="o">=</span> <span class="n">zmalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)</span><span class="o">+</span><span class="n">initlen</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="n">sh</span> <span class="o">=</span> <span class="n">zcalloc</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)</span><span class="o">+</span><span class="n">initlen</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// 以字节0填充</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">sh</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="n">sh</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">=</span> <span class="n">initlen</span><span class="p">;</span>
+    <span class="n">sh</span><span class="o">-&gt;</span><span class="n">free</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">initlen</span> <span class="o">&amp;&amp;</span> <span class="n">init</span><span class="p">)</span>
+        <span class="n">memcpy</span><span class="p">(</span><span class="n">sh</span><span class="o">-&gt;</span><span class="n">buf</span><span class="p">,</span> <span class="n">init</span><span class="p">,</span> <span class="n">initlen</span><span class="p">);</span> <span class="c1">// 复制数据</span>
+    <span class="n">sh</span><span class="o">-&gt;</span><span class="n">buf</span><span class="p">[</span><span class="n">initlen</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="p">(</span><span class="kt">char</span><span class="o">*</span><span class="p">)</span><span class="n">sh</span><span class="o">-&gt;</span><span class="n">buf</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>释放 sds 字符串的内存十分简单，因为 sdshdr 和 sds 为一个整体，因此释放时之需提供 sdshdr 的地址，即 <code>sds - sizeof(struct sdshdr)</code>。释放的函数 zfree 也是 Redis 自己实现的 free 版本</p>
+<div class="highlight"><pre><span></span><span class="cm">/* Free an sds string. No operation is performed if &#39;s&#39; is NULL. */</span>
+<span class="kt">void</span> <span class="nf">sdsfree</span><span class="p">(</span><span class="n">sds</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+    <span class="n">zfree</span><span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">));</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h5>sds 字符串的动态调整</h5>
+<p>sds 字符串最关键的就是它的长度的动态调整，包括字节数组的拓展和压缩。</p>
+<p>Redis 提供了一个函数用来拓展 sds 字符串的长度，这个函数用来拓展一个 sds 字符串的空余长度，由输入参数 addlen 控制，表示需要有 addlen 个空余字节数。实际 Redis 在操作时会判断字符串的长度，如果拓展后的总长度（已用和未用的字节数）少于 1M，则新的总长度为拓展后的 2 倍，否则新的总长度为拓展后总长度加 1M。这样做的目的就是为了减少 Redis 内存分配的次数，下次需要拓展时可能就不需要分配内存了。</p>
+<div class="highlight"><pre><span></span><span class="cm">/* Enlarge the free space at the end of the sds string so that the caller</span>
+<span class="cm"> * is sure that after calling this function can overwrite up to addlen</span>
+<span class="cm"> * bytes after the end of the string, plus one more byte for nul term.</span>
+<span class="cm"> *</span>
+<span class="cm"> * Note: this does not change the *length* of the sds string as returned</span>
+<span class="cm"> * by sdslen(), but only the free buffer space we have. */</span>
+<span class="n">sds</span> <span class="nf">sdsMakeRoomFor</span><span class="p">(</span><span class="n">sds</span> <span class="n">s</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">addlen</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">sdshdr</span> <span class="o">*</span><span class="n">sh</span><span class="p">,</span> <span class="o">*</span><span class="n">newsh</span><span class="p">;</span>
+    <span class="kt">size_t</span> <span class="n">free</span> <span class="o">=</span> <span class="n">sdsavail</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+    <span class="kt">size_t</span> <span class="n">len</span><span class="p">,</span> <span class="n">newlen</span><span class="p">;</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">free</span> <span class="o">&gt;=</span> <span class="n">addlen</span><span class="p">)</span> <span class="k">return</span> <span class="n">s</span><span class="p">;</span> <span class="c1">// 已有的空闲字节数大于要求的字节数，没必要拓展</span>
+    <span class="n">len</span> <span class="o">=</span> <span class="n">sdslen</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+    <span class="n">sh</span> <span class="o">=</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)));</span> <span class="c1">// sdshdr 指针</span>
+    <span class="n">newlen</span> <span class="o">=</span> <span class="p">(</span><span class="n">len</span><span class="o">+</span><span class="n">addlen</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">newlen</span> <span class="o">&lt;</span> <span class="n">SDS_MAX_PREALLOC</span><span class="p">)</span> <span class="c1">// SDS_MAX_PREALLOC = 1024*1024</span>
+        <span class="n">newlen</span> <span class="o">*=</span> <span class="mi">2</span><span class="p">;</span>
+    <span class="k">else</span>
+        <span class="n">newlen</span> <span class="o">+=</span> <span class="n">SDS_MAX_PREALLOC</span><span class="p">;</span>
+    <span class="n">newsh</span> <span class="o">=</span> <span class="n">zrealloc</span><span class="p">(</span><span class="n">sh</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)</span><span class="o">+</span><span class="n">newlen</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// &#39;\0&#39;需要固定的一个字节</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">newsh</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span> <span class="c1">// 分配失败</span>
+
+    <span class="n">newsh</span><span class="o">-&gt;</span><span class="n">free</span> <span class="o">=</span> <span class="n">newlen</span> <span class="o">-</span> <span class="n">len</span><span class="p">;</span> <span class="c1">// 更新空闲长度，不包括&#39;\0&#39;</span>
+    <span class="k">return</span> <span class="n">newsh</span><span class="o">-&gt;</span><span class="n">buf</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>sds 字符串既然有拓展，当然也会有压缩。Redis 使用了 sdsRemoveFreeSpace 函数用来回收 sds 字符串中的所有空余空间，实际操作时 Redis 会重新分配一块内存，将原有的数据复制到新的内存区域，并释放原有空间。</p>
+<div class="highlight"><pre><span></span><span class="cm">/* Reallocate the sds string so that it has no free space at the end. The</span>
+<span class="cm"> * contained string remains not altered, but next concatenation operations</span>
+<span class="cm"> * will require a reallocation.</span>
+<span class="cm"> * 重新分配 sds 字符串的空间，使它没有空余空间。</span>
+<span class="cm"> * 字符串中的内容不会改变，但是下次作字符串连接操作时，又会重新分配内存</span>
+<span class="cm"> *</span>
+<span class="cm"> * After the call, the passed sds string is no longer valid and all the</span>
+<span class="cm"> * references must be substituted with the new pointer returned by the call.</span>
+<span class="cm"> * 函数调用后，输入的指针 s 将会变成无效的 */</span>
+<span class="n">sds</span> <span class="nf">sdsRemoveFreeSpace</span><span class="p">(</span><span class="n">sds</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">sdshdr</span> <span class="o">*</span><span class="n">sh</span><span class="p">;</span>
+
+    <span class="n">sh</span> <span class="o">=</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)));</span>
+    <span class="n">sh</span> <span class="o">=</span> <span class="n">zrealloc</span><span class="p">(</span><span class="n">sh</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)</span><span class="o">+</span><span class="n">sh</span><span class="o">-&gt;</span><span class="n">len</span><span class="o">+</span><span class="mi">1</span><span class="p">);</span> <span class="c1">// 重新分配内存</span>
+    <span class="n">sh</span><span class="o">-&gt;</span><span class="n">free</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">sh</span><span class="o">-&gt;</span><span class="n">buf</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h5>sds 字符串的操作函数</h5>
+<p>sds 字符串除了部分兼容 C 的字符串操作函数，Redis 自身也实现了一些 sds 字符串操作函数，包括字符串连接函数 sdscat 系列，整数转换成字符串，格式化字符串，字符串分割等很多操作。</p>
+<p>sdscat 系列函数中最基础的就是 <code>sds sdscatlen(sds s, const void *t, size_t len)</code> 函数，它将指针 t 指向的内存空间的 len 个字节连接到 s 字符串上。其他的 cat 操作都是基于这个函数的。</p>
+<div class="highlight"><pre><span></span><span class="cm">/* Append the specified binary-safe string pointed by &#39;t&#39; of &#39;len&#39; bytes to the</span>
+<span class="cm"> * end of the specified sds string &#39;s&#39;.</span>
+<span class="cm"> *</span>
+<span class="cm"> * After the call, the passed sds string is no longer valid and all the</span>
+<span class="cm"> * references must be substituted with the new pointer returned by the call. */</span>
+<span class="n">sds</span> <span class="nf">sdscatlen</span><span class="p">(</span><span class="n">sds</span> <span class="n">s</span><span class="p">,</span> <span class="k">const</span> <span class="kt">void</span> <span class="o">*</span><span class="n">t</span><span class="p">,</span> <span class="kt">size_t</span> <span class="n">len</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">struct</span> <span class="n">sdshdr</span> <span class="o">*</span><span class="n">sh</span><span class="p">;</span>
+    <span class="kt">size_t</span> <span class="n">curlen</span> <span class="o">=</span> <span class="n">sdslen</span><span class="p">(</span><span class="n">s</span><span class="p">);</span>
+
+    <span class="n">s</span> <span class="o">=</span> <span class="n">sdsMakeRoomFor</span><span class="p">(</span><span class="n">s</span><span class="p">,</span><span class="n">len</span><span class="p">);</span> <span class="c1">// 分配足够的内存空间</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">s</span> <span class="o">==</span> <span class="nb">NULL</span><span class="p">)</span> <span class="k">return</span> <span class="nb">NULL</span><span class="p">;</span>
+    <span class="n">sh</span> <span class="o">=</span> <span class="p">(</span><span class="kt">void</span><span class="o">*</span><span class="p">)</span> <span class="p">(</span><span class="n">s</span><span class="o">-</span><span class="p">(</span><span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">sdshdr</span><span class="p">)));</span> <span class="c1">// 内存变更过后的 sdshdr 指针</span>
+    <span class="n">memcpy</span><span class="p">(</span><span class="n">s</span><span class="o">+</span><span class="n">curlen</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">len</span><span class="p">);</span> <span class="c1">// 复制</span>
+    <span class="n">sh</span><span class="o">-&gt;</span><span class="n">len</span> <span class="o">=</span> <span class="n">curlen</span><span class="o">+</span><span class="n">len</span><span class="p">;</span>
+    <span class="n">sh</span><span class="o">-&gt;</span><span class="n">free</span> <span class="o">=</span> <span class="n">sh</span><span class="o">-&gt;</span><span class="n">free</span><span class="o">-</span><span class="n">len</span><span class="p">;</span>
+    <span class="n">s</span><span class="p">[</span><span class="n">curlen</span><span class="o">+</span><span class="n">len</span><span class="p">]</span> <span class="o">=</span> <span class="sc">&#39;\0&#39;</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">s</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p><code>sds sdstrim(sds s, const char *cset)</code> 实现了字符串左右的 trim 操作。<code>void sdsrange(sds s, int start, int end)</code> 实现了字符串的子串操作，支持负索引。<code>void sdstolower(sds s)</code> 和 <code>void sdstoupper(sds s)</code> 调用了 C 内置的大小写转换函数用来实现 sds 字符串的大小写转换。Redis 还实现了其他很多字符串操作，很值得学习。</p>
+<h4>SDS 小结</h4>
+<p>sds 字符串是 Redis 中最基础的结构，使用一块连续内存来存放字符串的元信息和数据，减少了内存操作，申请与释放都只需要一次操作，而有了字符串的元信息，很多字符串的操作就能够得到优化，最简单的例子就是计算字符串的长度，C 中的 strlen 函数复杂度为 O(n)，而 Redis 中计算长度只是 O(1) 的操作。SDS 结构只是 Redis 中最基础的数据结构，不依赖其他 Redis 的数据结构，源码相对简单，但其中的设计仍然值得好好体味和学习。</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

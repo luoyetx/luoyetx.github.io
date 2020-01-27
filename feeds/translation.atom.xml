@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>zhangjie - Translation</title><link href="https://luoyetx.github.io/" rel="alternate"></link><link href="https://luoyetx.github.io/feeds/translation.atom.xml" rel="self"></link><id>https://luoyetx.github.io/</id><updated>2015-01-03T00:00:00+08:00</updated><entry><title>json vs simplejson vs ujson</title><link href="https://luoyetx.github.io/json-vs-simplejson-vs-ujson.html" rel="alternate"></link><published>2015-01-03T00:00:00+08:00</published><updated>2015-01-03T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-01-03:/json-vs-simplejson-vs-ujson.html</id><summary type="html">&lt;p&gt;本文为原创翻译，原文地址在&lt;a href="https://medium.com/@jyotiska/json-vs-simplejson-vs-ujson-a115a63a9e26"&gt;这里&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;JSON已经毫无争议地成为现在最常用的数据交换格式。Python中有两个常用的库来处理json数据，一个是Python标准库中自带的&lt;code&gt;json&lt;/code&gt;，另一个则是&lt;code&gt;simplejson&lt;/code&gt;，这个库是纯Python实现，并做了相应的优化。这篇博文的目的是向大家介绍&lt;a href="https://github.com/esnme/ultrajson"&gt;&lt;code&gt;ultrajson&lt;/code&gt;&lt;/a&gt;，也叫做&lt;code&gt;Ultra JSON&lt;/code&gt;，这个库使用C实现的，执行速度非常快。&lt;/p&gt;
+&lt;p&gt;我们对三个常用的json操作做了性能测评，这三个操作是&lt;strong&gt;load&lt;/strong&gt;，&lt;strong&gt;loads&lt;/strong&gt;，&lt;strong&gt;dumps&lt;/strong&gt;。我们创建一个字典类型，包含_id_，&lt;em&gt;name&lt;/em&gt;，&lt;em&gt;address_这三个键。再利用&lt;strong&gt;json.dumps()&lt;/strong&gt;将字典数据编码并保存到一个文件中。然后我们分别用&lt;strong&gt;json.loads()&lt;/strong&gt;和&lt;strong&gt;json.load()&lt;/strong&gt;从文件中加载数据。通过_10000&lt;/em&gt;，&lt;em&gt;50000&lt;/em&gt;，&lt;em&gt;100000&lt;/em&gt;，&lt;em&gt;200000&lt;/em&gt;，_1000000_个这样的字典数据，我们来测试三个库在这些操作上的时间消耗。&lt;/p&gt;
+&lt;h3&gt;利用dumps操作一个一个保存数据&lt;/h3&gt;
+&lt;p&gt;利用&lt;strong&gt;json.dumps()&lt;/strong&gt;操作一个一个地保存字典数据，我们得到了如下数据 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;本文为原创翻译，原文地址在&lt;a href="https://medium.com/@jyotiska/json-vs-simplejson-vs-ujson-a115a63a9e26"&gt;这里&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;JSON已经毫无争议地成为现在最常用的数据交换格式。Python中有两个常用的库来处理json数据，一个是Python标准库中自带的&lt;code&gt;json&lt;/code&gt;，另一个则是&lt;code&gt;simplejson&lt;/code&gt;，这个库是纯Python实现，并做了相应的优化。这篇博文的目的是向大家介绍&lt;a href="https://github.com/esnme/ultrajson"&gt;&lt;code&gt;ultrajson&lt;/code&gt;&lt;/a&gt;，也叫做&lt;code&gt;Ultra JSON&lt;/code&gt;，这个库使用C实现的，执行速度非常快。&lt;/p&gt;
+&lt;p&gt;我们对三个常用的json操作做了性能测评，这三个操作是&lt;strong&gt;load&lt;/strong&gt;，&lt;strong&gt;loads&lt;/strong&gt;，&lt;strong&gt;dumps&lt;/strong&gt;。我们创建一个字典类型，包含_id_，&lt;em&gt;name&lt;/em&gt;，&lt;em&gt;address_这三个键。再利用&lt;strong&gt;json.dumps()&lt;/strong&gt;将字典数据编码并保存到一个文件中。然后我们分别用&lt;strong&gt;json.loads()&lt;/strong&gt;和&lt;strong&gt;json.load()&lt;/strong&gt;从文件中加载数据。通过_10000&lt;/em&gt;，&lt;em&gt;50000&lt;/em&gt;，&lt;em&gt;100000&lt;/em&gt;，&lt;em&gt;200000&lt;/em&gt;，_1000000_个这样的字典数据，我们来测试三个库在这些操作上的时间消耗。&lt;/p&gt;
+&lt;h3&gt;利用dumps操作一个一个保存数据&lt;/h3&gt;
+&lt;p&gt;利用&lt;strong&gt;json.dumps()&lt;/strong&gt;操作一个一个地保存字典数据，我们得到了如下数据。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="json-1" src="https://luoyetx.github.io/images/2015/json-1.png"&gt;&lt;/p&gt;
+&lt;p&gt;我们发现&lt;code&gt;json&lt;/code&gt;的性能比&lt;code&gt;simplejson&lt;/code&gt;要高，但是&lt;code&gt;ultrajson&lt;/code&gt;的速度将近是&lt;code&gt;json&lt;/code&gt;的4倍。&lt;/p&gt;
+&lt;h3&gt;利用dumps操作直接保存所有数据&lt;/h3&gt;
+&lt;p&gt;在这个测试中，我们把所有字典数据放在一个list列表中，并用&lt;strong&gt;json.dumps()&lt;/strong&gt;保存这个list列表。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="json-2" src="https://luoyetx.github.io/images/2015/json-2.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;simplejson&lt;/code&gt;和&lt;code&gt;json&lt;/code&gt;表现得差不多，但是&lt;code&gt;ultrajson&lt;/code&gt;依旧比它们快1.5倍。接下来我们看看这三个库在load和loads操作上的对比。&lt;/p&gt;
+&lt;h3&gt;利用load操作加载数据&lt;/h3&gt;
+&lt;p&gt;我们用load操作来加载数据，这个数据是一个列表，里面放着字典数据。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="json-3" src="https://luoyetx.github.io/images/2015/json-3.png"&gt;&lt;/p&gt;
+&lt;p&gt;我们惊奇地发现&lt;code&gt;simplejson&lt;/code&gt;比另外两个库表现得都要好。&lt;code&gt;ultrajson&lt;/code&gt;的性能很接近&lt;code&gt;simplejson&lt;/code&gt;，而它们的速度都将近是&lt;code&gt;json&lt;/code&gt;的4倍。&lt;/p&gt;
+&lt;h3&gt;利用loads操作加载数据&lt;/h3&gt;
+&lt;p&gt;这个测试中，我们利用&lt;code&gt;json.loads()&lt;/code&gt;从文件中加载数据。&lt;/p&gt;
+&lt;p&gt;&lt;img alt="json-4" src="https://luoyetx.github.io/images/2015/json-4.png"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;ultrajson&lt;/code&gt;又一次打败了其他两个库，比&lt;code&gt;json&lt;/code&gt;快将近6倍，比&lt;code&gt;simplejson&lt;/code&gt;快3倍。&lt;/p&gt;
+&lt;p&gt;做完这些测试之后，结果很明显。在任何情况下都应该使用&lt;code&gt;simplejson&lt;/code&gt;来替代&lt;code&gt;json&lt;/code&gt;，而且&lt;code&gt;simplejson&lt;/code&gt;这个库本身受到很好的维护。如果你追求速度，那么可以使用&lt;code&gt;ultrajson&lt;/code&gt;，但是你要记住，这个库在不是序列化数据的情况下表现并不好。当然，如果你只是处理文本数据的话，那就没什么可以担忧的了。&lt;/p&gt;</content><category term="Translation"></category></entry></feed>

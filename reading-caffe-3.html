@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Caffe 源码阅读 Layer 加载机制</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/reading-caffe-3.html" rel="bookmark"
+         title="Permalink to Caffe 源码阅读 Layer 加载机制">Caffe 源码阅读 Layer 加载机制</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2016-02-04T00:00:00+08:00">
+      Thu 04 February 2016
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>Caffe 中的 Layer 是神经网络 Net 的基本结构，Caffe 内部维护一个注册表用于查找特定 Layer 对应的工厂函数。很多同学在 Windows 下使用 Caffe 遇到的一个问题就是运行 Caffe 相关的代码时出现无法找到 Layer，但是这个问题不会在 Linux 平台上出现，这个问题跟编译器有关，同时也是跟 Caffe 注册 Layer 的机制有关。</p>
+<div class="highlight"><pre><span></span><span class="n">F0203</span> <span class="mi">12</span><span class="o">:</span><span class="mi">50</span><span class="o">:</span><span class="mf">07.581297</span> <span class="mi">11524</span> <span class="n">layer_factory</span><span class="p">.</span><span class="nl">hpp</span><span class="p">:</span><span class="mi">78</span><span class="p">]</span> <span class="n">Check</span> <span class="nl">failed</span><span class="p">:</span> <span class="n">registry</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">type</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">(</span><span class="mi">0</span> <span class="n">vs</span><span class="p">.</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">Unknown</span> <span class="n">layer</span> <span class="nl">type</span><span class="p">:</span> <span class="n">Convolution</span> <span class="p">(</span><span class="n">known</span> <span class="nl">types</span><span class="p">:</span> <span class="p">)</span>
+</pre></div>
+
+
+<p>上面的错误是无法在注册表中找到 Convolution Layer 对应的工厂函数，程序直接崩溃。下面我们就来聊聊 Caffe 的 Layer 加载机制，以及为什么在 VC 下会出现这种问题。</p>
+<p>Caffe 的 Layer 注册表其实就是一组键值对，key 为 Layer 的类型而 value 则对应其工厂函数。下面两组宏控制了 Layer 的注册动作。</p>
+<div class="highlight"><pre><span></span><span class="cp">#define REGISTER_LAYER_CREATOR(type, creator)                                  \</span>
+<span class="cp">  static LayerRegisterer&lt;float&gt; g_creator_f_##type(#type, creator&lt;float&gt;);     \</span>
+<span class="cp">  static LayerRegisterer&lt;double&gt; g_creator_d_##type(#type, creator&lt;double&gt;)    \</span>
+
+<span class="cp">#define REGISTER_LAYER_CLASS(type)                                             \</span>
+<span class="cp">  template &lt;typename Dtype&gt;                                                    \</span>
+<span class="cp">  shared_ptr&lt;Layer&lt;Dtype&gt; &gt; Creator_##type##Layer(const LayerParameter&amp; param) \</span>
+<span class="cp">  {                                                                            \</span>
+<span class="cp">    return shared_ptr&lt;Layer&lt;Dtype&gt; &gt;(new type##Layer&lt;Dtype&gt;(param));           \</span>
+<span class="cp">  }                                                                            \</span>
+<span class="cp">  REGISTER_LAYER_CREATOR(type, Creator_##type##Layer)</span>
+</pre></div>
+
+
+<p><code>REGISTER_LAYER_CLASS</code> 宏可以实现将特定 Layer 注册到全局注册表中，首先定义一个工厂函数用来产生 Layer 对象，然后调用 <code>REGISTER_LAYER_CREATOR</code> 将工厂函数和 Layer 的类型名进行注册，注册时只是用 Layer 的 float 和 double 类型，这是网络实际数据使用到的类型。两个静态变量一个对应 float，另一个对应 double，这两个变量的初始化，也就是它们的构造函数实际上完成 Layer 的注册动作。</p>
+<div class="highlight"><pre><span></span><span class="k">template</span> <span class="o">&lt;</span><span class="k">typename</span> <span class="n">Dtype</span><span class="o">&gt;</span>
+<span class="k">class</span> <span class="nc">LayerRegisterer</span> <span class="p">{</span>
+ <span class="k">public</span><span class="o">:</span>
+  <span class="n">LayerRegisterer</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">type</span><span class="p">,</span>
+                  <span class="n">shared_ptr</span><span class="o">&lt;</span><span class="n">Layer</span><span class="o">&lt;</span><span class="n">Dtype</span><span class="o">&gt;</span> <span class="o">&gt;</span> <span class="p">(</span><span class="o">*</span><span class="n">creator</span><span class="p">)(</span><span class="k">const</span> <span class="n">LayerParameter</span><span class="o">&amp;</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">LayerRegistry</span><span class="o">&lt;</span><span class="n">Dtype</span><span class="o">&gt;::</span><span class="n">AddCreator</span><span class="p">(</span><span class="n">type</span><span class="p">,</span> <span class="n">creator</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+</pre></div>
+
+
+<p><code>LayerRegisterer</code> 对象初始化时实际上又是调用相应类型的 <code>LayerRegistry</code> 类的静态方法 <code>AddCreator</code>。</p>
+<div class="highlight"><pre><span></span><span class="k">typedef</span> <span class="n">std</span><span class="o">::</span><span class="n">map</span><span class="o">&lt;</span><span class="n">string</span><span class="p">,</span> <span class="n">Creator</span><span class="o">&gt;</span> <span class="n">CreatorRegistry</span><span class="p">;</span>
+
+<span class="k">static</span> <span class="n">CreatorRegistry</span><span class="o">&amp;</span> <span class="n">Registry</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">static</span> <span class="n">CreatorRegistry</span><span class="o">*</span> <span class="n">g_registry_</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CreatorRegistry</span><span class="p">();</span>
+  <span class="k">return</span> <span class="o">*</span><span class="n">g_registry_</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>注册表类型为 <code>CreatorRegistry</code>，实际类型为 <code>std::map&lt;string, Creator&gt;</code>。可以通过 <code>Registry</code> 函数获取注册表的全局单例。而注册的过程就是一个简单的 <code>map</code> 操作。</p>
+<div class="highlight"><pre><span></span><span class="c1">// Adds a creator.</span>
+<span class="k">static</span> <span class="kt">void</span> <span class="nf">AddCreator</span><span class="p">(</span><span class="k">const</span> <span class="n">string</span><span class="o">&amp;</span> <span class="n">type</span><span class="p">,</span> <span class="n">Creator</span> <span class="n">creator</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">CreatorRegistry</span><span class="o">&amp;</span> <span class="n">registry</span> <span class="o">=</span> <span class="n">Registry</span><span class="p">();</span>
+  <span class="n">CHECK_EQ</span><span class="p">(</span><span class="n">registry</span><span class="p">.</span><span class="n">count</span><span class="p">(</span><span class="n">type</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="o">&lt;&lt;</span> <span class="s">&quot;Layer type &quot;</span> <span class="o">&lt;&lt;</span> <span class="n">type</span> <span class="o">&lt;&lt;</span> <span class="s">&quot; already registered.&quot;</span><span class="p">;</span>
+  <span class="n">registry</span><span class="p">[</span><span class="n">type</span><span class="p">]</span> <span class="o">=</span> <span class="n">creator</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>注册的过程大概就是上面说到的流程。Caffe 中的 Layer 采用静态变量初始化的方式来注册工厂函数到全局注册表中，整个注册过程依赖这些静态变量。那么问题来了，为什么 VC 中的代码无法在注册表中找到 Layer 对应的工厂函数？事实上，VC 中 Caffe 代码的全局注册表是空的，一条记录都没有，问题并不是出在这个全局注册表，而是那些完成注册动作的静态变量。由于这些静态变量存在的意义在于其构造函数完成 Layer 的注册动作，没有任何一段代码会去引用这些静态变量，这个坑在于 VC 默认会优化掉这些静态变量，那么所有这些静态变量对应的构造函数将无法执行，那么注册动作一个都不会触发，导致全局注册表为空，然后在构造网络 Net 时就会崩溃。</p>
+<p>在 VC 下解决这个问题的关键是让 VC 编译器不将这些静态变量优化掉，可以在 Linker 的配置中设置依赖项输入，如下图所示。</p>
+<p><img alt="caffe-vc-linker" src="https://luoyetx.github.io/images/2016/caffe-vc-linker.png"></p>
+<p>通过上述的方法可以保证以静态库的方式链接 Caffe 代码时，Caffe 中的那些静态变量不会被优化掉。另外一种方式是直接将 Caffe 的源码加入到现有工程代码中，直接参与编译（不是编译生成静态库），这样也可以保证静态变量不被优化掉。</p>
+<p>Caffe 的这种注册 Layer 的机制在 VC 下有点坑，但也不是不能解决，只要搞清楚 Caffe 内部的机制和 VC 的一些特征，还是很容易弄明白问题所在，进而寻求相应的解决方案。</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

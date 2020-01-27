@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Scrapy 使用小记 1</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/using-scrapy-1.html" rel="bookmark"
+         title="Permalink to Scrapy 使用小记 1">Scrapy 使用小记 1</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2014-12-28T00:00:00+08:00">
+      Sun 28 December 2014
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/technology.html">Technology</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p><a href="http://scrapy.org/">Scrapy</a>是一套由<a href="https://www.python.org/">Python</a>编写的爬虫框架，基于异步事件驱动的<a href="https://twistedmatrix.com/trac/">Twisted</a>库。 在Scrapy的框架下，我们可以很方便地编写爬虫来抓取页面。Scrapy官方文档中有一个简单的<a href="http://doc.scrapy.org/en/latest/intro/tutorial.html">教程</a>。通过这个教程，我们可以基本了解到如何在Scrapy提供的框架下编写代码。</p>
+<h3>安装Scrapy</h3>
+<p>在Windows下安装Scrapy可能会比较费劲，主要是因为Scrapy依赖的一些库是用C写的，哪怕你在Windows下配置了gcc或者是vc的编译器，还是会因为缺少相应库的头文件而出现编译错误。Scrapy官方文档针对Windows有相应的<a href="http://doc.scrapy.org/en/latest/intro/install.html">安装指南</a>。如果你不嫌麻烦的话可以照着安装指南来。不过在Windows下我比较推荐一个Python发行包<a href="https://code.google.com/p/pythonxy/">pythonxy</a>。这个链接估计是常年被墙，大家可以通过别的方法下载这个发行包，我这里提供一个<a href="http://pan.baidu.com/s/1c0s5c56">百度网盘</a>。pythonxy其实上是一个Python科学计算包集合，里面提供了很多Python的开发库，这些库很多都是有C的拓展，不过pythoxy已经帮我们编译好了，而且还集成了其他有用的Python库，包括Scrapy依赖的库。 Linux和Unix可以很方便的通过pip命令安装Scrapy，大部分*nix发行版中的Python都含有Scrapy依赖的库，所以我们可以直 接使用pip。当然，如果在Windows中安装了pythonxy，我们也可以通过pip来安装。</p>
+<p><code>$ pip install scrapy</code></p>
+<p>这样我们就装好了Scrapy库。</p>
+<h3>创建Scrapy Project</h3>
+<p>我们可以通过Scrapy提供的命令行工具轻松地创建初始项目，这个对我们开发者来说相当的友好，就像<a href="https://www.djangoproject.com/">django</a>提供的命令行工具一样。我们通过观察初始项目的目录结构和文件命名，可以大致上了解整个项目的结构。</p>
+<p><code>$ scrapy startproject spixiv</code></p>
+<p>通过这条命令，我们可以初始化一个scrapy项目。这里的spixiv是项目的名称。我们看看Scrapy为我们生成了哪些东西。</p>
+<div class="highlight"><pre><span></span><span class="err">  spixiv</span>
+<span class="err">    ├── scrapy.cfg</span>
+<span class="err">    └── spixiv</span>
+<span class="err">      ├── __init__.py</span>
+<span class="err">      ├── items.py</span>
+<span class="err">      ├── pipelines.py</span>
+<span class="err">      ├── settings.py</span>
+<span class="err">      └── spiders</span>
+<span class="err">        └── __init__.py</span>
+</pre></div>
+
+
+<p>我们可以看到顶级目录是spixiv，下面有一个scrapy.cfg文件和一个spixiv目录(这个目录也是一个Python包)。scrapy.cfg这个文件一般不用去理会它，他只是向Scrapy提供了项目的配置信息(真正的配置信息其实在settings.py文件中，scrapy.cfg只是在其中有一个字段指向了这个settings.py文件)。</p>
+<div class="highlight"><pre><span></span><span class="c1"># Automatically created by: scrapy startproject</span>
+<span class="c1">#</span>
+<span class="c1"># For more information about the [deploy] section see:</span>
+<span class="c1"># http://doc.scrapy.org/en/latest/topics/scrapyd.html</span>
+
+<span class="p">[</span><span class="n">settings</span><span class="p">]</span>
+<span class="n">default</span> <span class="o">=</span> <span class="n">spixiv</span><span class="o">.</span><span class="n">settings</span>
+
+<span class="p">[</span><span class="n">deploy</span><span class="p">]</span>
+<span class="c1">#url = http://localhost:6800/</span>
+<span class="n">project</span> <span class="o">=</span> <span class="n">spixiv</span>
+</pre></div>
+
+
+<p>以上是scrapy.cfg文件中的所有内容。我们代码的编写主要在spixiv目录下。</p>
+<h3>分析初始项目结构</h3>
+<p>个人非常喜欢框架提供startproject这种类似的工具，因为这往往就是这个框架下项目的最佳组织结构。这里不得不提一下django提供的初始项目结构，非常的模块化，从中我们也可以窥探到这些框架自身的组织结构和运行流程。下面我们来分析分析Scrapy为我们创建的初始项目</p>
+<h5>scrapy.cfg</h5>
+<p>这个文件在上一节中已经提到过，它只是给Scrapy命令行工具提供一个基础的配置信息(这也是为什么我们后面运行scrapy命令时必须和这个文件在同一目录下)。里面的<code>default</code>字段提供了项目配置的文件。</p>
+<h5>spixiv/settings.py</h5>
+<div class="highlight"><pre><span></span><span class="n">BOT_NAME</span> <span class="o">=</span> <span class="s1">&#39;spixiv&#39;</span>
+
+<span class="n">SPIDER_MODULES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;spixiv.spiders&#39;</span><span class="p">]</span>
+<span class="n">NEWSPIDER_MODULE</span> <span class="o">=</span> <span class="s1">&#39;spixiv.spiders&#39;</span>
+</pre></div>
+
+
+<p>这个文件里才是真正的项目配置(其实也没有多少东西)，BOT_NAME指明我们的项目名称(爬虫机器人？)，SPIDER_MODULES告诉Scrapy框架应该在哪些模块中寻找我们编写的爬虫。NEWSPIDER_MODULE这个字段其实可有可无，如果你需要Scrapy为你生成Spider模板的话，那么Scrapy生成的代码就会被写在这里设置的模块下。</p>
+<h5>spixiv/items.py</h5>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+
+<span class="k">class</span> <span class="nc">SpixivItem</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Item</span><span class="p">):</span>
+    <span class="c1"># define the fields for your item here like:</span>
+    <span class="c1"># name = scrapy.Field()</span>
+    <span class="k">pass</span>
+</pre></div>
+
+
+<p>这个文件中主要用来编写我们需要爬取的信息，我们将对抓取到的信息抽象并包装为一个一个的item，而这些item的定义就可以放在这个文件中。后面谈到Scrapy整个框架的流程时，我们可以看到这样做的好处。</p>
+<h5>spixiv/pipelines.py</h5>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SpixivPipeline</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">process_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">spider</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span>
+</pre></div>
+
+
+<p>这个文件里定义了对item的处理行为，默认没有做处理。如果要对item做额外的处理，可以在这里编写代码逻辑，还要在settings.py中添加相应的字段让Scrapy框架来加载我们的处理逻辑(默认不会加载)。</p>
+<p>以上就是Scrapy为我们创建的项目结构，非常简洁的结构，下面我们就可以开始编写Spider了。</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

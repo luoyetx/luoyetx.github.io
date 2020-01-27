@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Reinforcement Learning Notes</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/rl-notes.html" rel="bookmark"
+         title="Permalink to Reinforcement Learning Notes">Reinforcement Learning Notes</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2017-03-09T00:00:00+08:00">
+      Thu 09 March 2017
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <h1>Learning note on <a href="https://www.youtube.com/watch?v=lfHX2hHRMVQ">Markov Decision Process</a>.</h1>
+<h5>Markov Property</h5>
+<p>$$ \mathbb{P}[S_{t+1}|S_t] = \mathbb{P}[S_{t+1}|S_1, ..., S_t] $$</p>
+<h5>Markov Process or Markov Chain</h5>
+<p>$\langle S, P \rangle$</p>
+<p>$S$ is a finite set of states.</p>
+<p>$P$ is a state transition probability matrix. $P_{ss'} = \mathbb{P}[S_{t+1}=s'|S_t=s]$</p>
+<h3>Markov Reward Process</h3>
+<p>$\langle S, P, R, \gamma \rangle$</p>
+<p>$S$ is a finite set of states.</p>
+<p>$P$ is a state transition probability matrix. $P_{ss'} = \mathbb{P}[S_{t+1}=s'|S_t=s]$</p>
+<p>$R$ is a reward function, $R_s = \mathbb{E}[R_{t+1}|S_t=s]$</p>
+<p>$\gamma$ is a discount factor, $\gamma \in [0, 1]$</p>
+<h5>Value Function</h5>
+<p>value function $v(s)$ gives the long-term value of state $s$</p>
+<p>$$ G_t = R_{t+1} + \gamma R_{t+2} + ... = \sum_{k=0}^\infty\gamma^k R_{t+k+1} $$</p>
+<p>$$
+\begin{eqnarray}
+v(s) &amp;=&amp; \mathbb{E}[G_t|S_t=s] \
+&amp;=&amp; \mathbb{E}[R_{t+1} + \gamma(R_{t+2}+\gamma R_{t+3}+...)|S_t=s] \
+&amp;=&amp; \mathbb{E}[R_{t+1} + \gamma G_{t+1}|S_t=s] \
+&amp;=&amp; \mathbb{E}[R_{t+1} + \gamma v(S_{t+1})|S_t=s]
+\end{eqnarray}
+$$</p>
+<h5>Bellman Equation for MRP</h5>
+<p>$$
+\begin{eqnarray}
+v(s) &amp;=&amp; \mathbb{E}[R_{t+1} + \gamma v(S_{t+1})|S_t=s] \
+&amp;=&amp; R_s + \gamma \sum_{s' \in S}P_{ss'}v(s')
+\end{eqnarray}
+$$</p>
+<p>$$ v = R + \gamma P v $$</p>
+<h3>Markov Decision Process</h3>
+<p>$\langle S, A, P, R, \gamma \rangle$</p>
+<p>$S$ is a finite set of states</p>
+<p>$A$ is a finite set of actions</p>
+<p>$P$ is state transition probability matrix, $P_{ss'}^a = \mathbb{P}[S_{t+1}=s'|S_t=s,A_t=a]$</p>
+<p>$R$ is a reward function, $R_s^a = \mathbb{E}[R_{t+1}|S_t=s,A_t=a]$</p>
+<p>$\gamma$ is a discount factor, $\gamma \in [0, 1]$</p>
+<h5>Policy</h5>
+<p>A <em>policy</em> $\pi$ is a distribution over actions given states</p>
+<p>$$ \pi(a|s) = \mathbb{P}[A_t=a|S_t=s] $$</p>
+<p>$$ A_t \sim \pi(\cdot|s), \forall t \gt 0 $$</p>
+<p>Given $M = \langle S, A, P, R, \gamma \rangle$ and policy $\pi$</p>
+<p>$S_1, S_2, ...$ is a Markov process $\langle S, P^\pi \rangle$</p>
+<p>$S_1, R_2, S_2, R_3, ...$ is a Markov reward process $\langle S, P^\pi, R^\pi, \gamma \rangle$</p>
+<p>$$ P_{ss'}^\pi = \sum_{a \in A}\pi(a|s)P_{ss'}^a $$</p>
+<p>$$ R_s^\pi = \sum_{a \in A}\pi(a|s)R_s^a $$</p>
+<p><em>state-value</em> function $v_\pi(s)$</p>
+<p>$$ v_\pi(s) = \mathbb{E}_\pi[G_t|S_t=s] $$</p>
+<p><em>action-value</em> function $q_\pi(s, a)$</p>
+<p>$$ q_\pi(s, a) = \mathbb{E}_\pi[G_t|S_t=s, A_t=a] $$</p>
+<h5>Bellman Equation for value function</h5>
+<p>$$ v_\pi(s) = \mathbb{E_\pi}[R_{t+1} + \gamma v_\pi(S_{t+1})|S_t=s] $$</p>
+<p>$$ q_\pi(s, a) = \mathbb{E_\pi}[R_{t+1} + \gamma q_\pi(S_{t+1}, A_{t+1})|S_t=s,A_t=a] $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_v-300x116.png" alt="" width="300" height="116" class="aligncenter size-medium wp-image-228" /></p>
+<p>$$ v_\pi(s) =  \sum_{a \in A}\pi(a|s)q_\pi(s, a) $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_q-300x122.png" alt="" width="300" height="122" class="aligncenter size-medium wp-image-227" /></p>
+<p>$$ q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s') $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_v-1-300x155.png" alt="" width="300" height="155" class="aligncenter size-medium wp-image-230" /></p>
+<p>$$ v_\pi(s) = \sum_{a \in A}\pi(a|s)(R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s')) $$</p>
+<p>$$ v_\pi = R^\pi + \gamma P^\pi v_\pi $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_q-1-300x145.png" alt="" width="300" height="145" class="aligncenter size-medium wp-image-229" /></p>
+<p>$$ q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a \sum_{a' \in A}\pi(a'|s')q_\pi(s', a') $$</p>
+<h5>Optimal Value Function</h5>
+<p>$$ v_\ast(s) = \max_{\pi}v_\pi(s) $$</p>
+<p>$$ q_\ast(s, a) = \max_{\pi}q_\pi(s, a) $$</p>
+<p>policy ordering</p>
+<p>$$ \pi \gt \pi' \quad if v_\pi(s) \ge v_{\pi'}(s), \forall s $$</p>
+<p>There exists an optimal policy $\pi_\ast$ that $\pi_\ast \ge \pi, \forall \pi$
+All optimal policies achieve the optimal value function, $v_{\pi_\ast}(s) = v_\ast(s)$
+All optimal policies achieve the optimal action value function, $q_{\pi_\ast}(s, a) = q_\ast(s, a)$</p>
+<p>$$
+\begin{eqnarray}
+\pi_\ast(a|s) =
+\begin{cases}
+1 \quad if a = \arg\max_{a \in A}q_\ast(s, a) \
+0 \quad otherwise
+\end{cases}
+\end{eqnarray}
+$$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_ov-300x117.png" alt="" width="300" height="117" class="aligncenter size-medium wp-image-234" /></p>
+<p>$$ v_\ast(s) = \max_{a}q_\ast(s, a) $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_oq-300x127.png" alt="" width="300" height="127" class="aligncenter size-medium wp-image-232" /></p>
+<p>$$ q_\ast(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^av_\ast(s') $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_ov-1-300x147.png" alt="" width="300" height="147" class="aligncenter size-medium wp-image-235" /></p>
+<p>$$ v_\ast(s) = \max_{a}R_s^a + \gamma \sum_{s' \in S}P_{ss'}^av_\ast(s') $$</p>
+<p><img src="/images/2017/rl-notes/rl_mdp_oq-1-300x148.png" alt="" width="300" height="148" class="aligncenter size-medium wp-image-233" /></p>
+<p>$$ q_\ast(s, a) = R_s^a + \sum_{s' \in S}P_{ss'}^a\max_{a'}q_\ast(s', a') $$</p>
+<h3>Summary</h3>
+<p>$$ v_\pi(s) =  \sum_{a \in A}\pi(a|s)q_\pi(s, a) $$</p>
+<p>$$ q_\pi(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\pi(s') $$</p>
+<p>$$ v_\ast(s) = \max_{a \in A}q_\ast(s, a) $$</p>
+<p>$$ q_\ast(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^av_\ast(s') $$</p>
+<h1>Learning note on <a href="https://www.youtube.com/watch?v=Nd1-UUMVfz4">Planning by Dynamic Programming</a>.</h1>
+<h5>Bellman Expectation Equation</h5>
+<p>$v_\pi(s)$, $q_\pi(s, a)$</p>
+<p>$$ v_\pi(s) = \sum_{a \in A}\pi(a|s)q_\pi(s, a) $$</p>
+<p>$$ q_\pi(s, a) = R_s^a + \sum_{s' \in S}P_{ss'}^a v_\pi(s') $$</p>
+<h5>Bellman Optimality Equation</h5>
+<p>$v_\ast(s) $, $q_\ast(s, a)$</p>
+<p>$$ v_\ast(s) = \max_{a \in A}q_\ast(s, a) $$</p>
+<p>$$ q_\ast(s, a) = R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_\ast(s') $$</p>
+<h3>Iterative Policy Evaluation</h3>
+<p>Problem: evaluate a given policy $\pi$</p>
+<p>Solution: iterative application of Bellman Expectation Equation</p>
+<p>$v_1 \to v_2 \to ... \to v_\pi$</p>
+<p><img src="/images/2017/rl-notes/rl2-ipe-300x157.png" alt="" width="300" height="157" class="aligncenter size-medium wp-image-271" /></p>
+<p>$$ v_{k+1}(s) = \sum_{a \in A}\pi(s, a)(R_s^a + \gamma \sum_{s' in S}P_{ss'}^a v_k(s')) $$</p>
+<h3>Policy Iteration</h3>
+<ol>
+<li>Given an initial policy $\pi$</li>
+<li>Evaluate the policy $\pi$</li>
+</ol>
+<p>$$ v_\pi(s) = \mathbb{E_\pi}[R_{t+1}+\gamma R_{t+1} + ...|S_t=s] $$</p>
+<ol>
+<li>Improve the policy by acting greedily with respect $v_\pi$</li>
+</ol>
+<p>$$ \pi' = greedy(v_\pi) $$</p>
+<ol>
+<li>Repeat step 2 and 3 until $\pi$ converges to $\pi^\ast$</li>
+</ol>
+<p><img src="/images/2017/rl-notes/rl-pi-300x174.png" alt="" width="300" height="174" class="aligncenter size-medium wp-image-275" /></p>
+<p>for deterministic policy $a = \pi(s)$</p>
+<p>$$ \pi'(s) = \arg\max_{a \in A}q_\pi(s, a) $$</p>
+<p>$$ q_\pi(s, \pi'(s)) = \arg\max_{a \in A}q_\pi(s, a) \ge q_\pi(s, \pi(s)) = v_\pi(s) $$</p>
+<p>$$
+\begin{eqnarray}
+v_\pi(s) &amp;\le&amp; q_\pi(s, \pi'(s)) = \mathbb{E_{\pi'}}[R_{t+1}+\gamma v_\pi(S_{t+1})|S_t=s] \
+&amp;\le&amp; \mathbb{E_{\pi'}}[R_{t+1}+\gamma q_\pi(S_{t+1}, \pi'(S_{t+1}))|S_t=s] \
+&amp;\le&amp; \mathbb{E_{\pi'}}[R_{t+1}+\gamma R_{t+2} + \gamma^2 q_\pi(S_{t+2}. \pi'(S_{t+2}))|S_t=s] \
+&amp;\le&amp; \mathbb{E_{\pi'}}[R_{t+1}+\gamma R_{t+2} +...|S_t=s] = v_{\pi'}(s)
+\end{eqnarray}
+$$</p>
+<p>$$ v_\pi(s) \le v_{\pi'}(s) $$</p>
+<p>if improvements stop or converges</p>
+<p>$$ q_\pi(s, \pi'(s)) = \max_{a \in A}q_\pi(s, a) = q_\pi(s, \pi(s)) = v_\pi(s) $$</p>
+<p>$$ v_\pi(s) = \max_{a \in A}q_\pi(s, a) $$</p>
+<p>so $v_\pi(s)$ satisfies Bellman Optimality Equation</p>
+<p>$$ v_\pi(s) = v_\ast(s) $$</p>
+<h3>Value Iteration</h3>
+<p>Problem: find optimal policy $\pi$
+Solution: iterative application of Bellman Optimality Equaltion
+$v_1 \to v_2 \to ... \to v_\ast $
+Using synchronous backups</p>
+<ul>
+<li>at each iteration k+1</li>
+<li>for all states $s \in S$</li>
+<li>update $v_{k+1}(s) = v_k(s')$</li>
+</ul>
+<p>No explicit policy
+Intermediate value function $v_k$ may not correspond to any policy</p>
+<p><img src="/images/2017/rl-notes/rl2-ipe-300x157.png" alt="" width="300" height="157" class="aligncenter size-medium wp-image-271" /></p>
+<p>$$ v_{k+1}(s) = \max_{a \in A}R_s^a + \gamma \sum_{s' \in S}P_{ss'}^a v_k(s') $$</p>
+<h3>Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Problem</th>
+<th>Bellman Equation</th>
+<th>Algorithm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Prediction</td>
+<td>Bellman Expectation Equation</td>
+<td>Iterative Policy Evaluation</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>Bellman Expectation Equation + Greedy Policy Improvement</td>
+<td>Policy Iteration</td>
+</tr>
+<tr>
+<td>Control</td>
+<td>Bellman Optimiality Equation</td>
+<td>Value Iteration</td>
+</tr>
+</tbody>
+</table>
+<h1>Learning note on <a href="https://www.youtube.com/watch?v=PnHCvfgC_ZA">Model-Free Prediction</a>.</h1>
+<p>Model-Free Prediction is about estimating the value function of an <em>unknown</em> MDP.</p>
+<h3>Monte-Carlo Reinforcement Learning</h3>
+<p>learn $v_\pi$ from <strong>complete</strong> episodes of experience under policy $\pi$.</p>
+<p>$$ S_1, A_1, R_2, ..., S_k \sim \pi $$</p>
+<p><em>return</em> is the total discount reward</p>
+<p>$$ G_t = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{T-1}R_T $$</p>
+<p>$$ v_\pi(s) = \mathbb{E_\pi}[G_t|S_t=s] $$</p>
+<p>Monte-Carlo policy evaluation uses <em>empirical mean</em> return instead of <em>expected</em>  return.</p>
+<ul>
+<li>$N(s) \gets N(s) + 1$</li>
+<li>$S(s) \gets S(s) + G_t$</li>
+<li>$V(s) = S(s) / N(s)$</li>
+<li>$V(s) \to v_\pi(s)$ as $N(s) \to \infty$</li>
+</ul>
+<p>update $S(s)$ with return $G_t$</p>
+<p>$$ N(S_t) \gets N(S_t) + 1 $$</p>
+<p>$$ V(S_t) \gets V(S_t) + \frac{1}{N(S_t)}(G_t - V(S_t)) $$</p>
+<p>$$ V(S_t) \gets V(S_t) + \alpha(G_t - V(S_t)) $$</p>
+<h3>Temporal-Difference Learning</h3>
+<p>learn directly from episodes of experience. episodes can be <strong>incomplete</strong> using <em>bootstrapping</em> and updates a guess towards guess.</p>
+<ul>
+<li>learn $v_\pi$ online from experience under policy $\pi$</li>
+<li>$V(S_t) \gets V(S_t) + \alpha(G_t - V(S_t))$</li>
+<li>replace <em>actual</em> return $G_t$ with <em>estimated</em> return $R_{t+1}+\gamma V(S_{t+1})$</li>
+<li>$V(S_t) \gets V(S_t) + \alpha(R_{t+1} + \gamma V(S_{t+1}) - V(S_t))$</li>
+<li>$R_{t+1}+\gamma V(S_{t+1})$ is called TD target</li>
+<li>$\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$ is called TD error</li>
+</ul>
+<p>Driving Home Example: MC vs. TD</p>
+<p><img src="/images/2017/rl-notes/rl3-mcvstd-1024x503.png" alt="" width="660" height="324" class="aligncenter size-large wp-image-299" /></p>
+<h3>Differences between MC and TD</h3>
+<p>Return $G_t$ is unbiased estimate of $v_\pi(S_t)$ while True TD target $R_{t+1}+\gamma v_\pi(S_{t+1})$ is a biased estimate.</p>
+<p>TD target is much lower variance than Return</p>
+<ul>
+<li>Return depends on <strong>many</strong> random actions, transitions, rewards</li>
+<li>TD target depends on <strong>one</strong> random action, transition, reward</li>
+</ul>
+<p>MC has high variance and zero bias</p>
+<ul>
+<li>Good convergence properties</li>
+<li>Not every sensitive to  initial value</li>
+<li>Very simple to understand and use</li>
+<li>MC doesn't exploit Markov property, usually more efficient in non-Markov environments</li>
+</ul>
+<p>TD has low variance and some bias</p>
+<ul>
+<li>Usually more efficient than MC</li>
+<li>TD(0) converges to $v_\pi(s)$</li>
+<li>More sensitive to initial value, because bootstrapping</li>
+<li>TD exploits Markov property, usually more efficient in Markov environments</li>
+</ul>
+<p>TD and MC both converge: $V(s) \to v_\pi(s)$ as $experience \to \infty$</p>
+<h5>Monte-Carlo Backup</h5>
+<p>$$ V(S_t) \gets V(S_t) + \alpha(G_t - V(S_t)) $$</p>
+<p><img src="/images/2017/rl-notes/rl3-mc-1024x520.png" alt="" width="660" height="335" class="aligncenter size-large wp-image-301" /></p>
+<h5>Temporal-Difference Backup</h5>
+<p>$$ V(S_t) \gets V(S_t) + \alpha(R_{t+1} + \gamma V(S_{t+1}) - V(S_t)) $$</p>
+<p><img src="/images/2017/rl-notes/rl3-td-1024x521.png" alt="" width="660" height="336" class="aligncenter size-large wp-image-302" /></p>
+<h5>Dynamic Programming Backup</h5>
+<p>$$ V(S_t) \gets \mathbb{E_\pi}[R_{t+1} + \gamma V(S_{t+1})] $$</p>
+<p><img src="/images/2017/rl-notes/rl3-dp-1024x532.png" alt="" width="660" height="343" class="aligncenter size-large wp-image-303" /></p>
+<p><strong>Bootstrapping</strong>: update involves an estimate</p>
+<ul>
+<li>MC doesn't boostrap</li>
+<li>DP, TD bootstraps</li>
+</ul>
+<p><strong>Sampling</strong>: update samples an expectation</p>
+<ul>
+<li>DP doesn't sample</li>
+<li>MC, TD samples</li>
+</ul>
+<p><img src="/images/2017/rl-notes/rl3-view.png" alt="" width="996" height="705" class="aligncenter size-full wp-image-304" /></p>
+<h3>$TD(\lambda)$</h3>
+<p>n-step return</p>
+<p><img src="/images/2017/rl-notes/rl3-nstep.png" alt="" width="954" height="609" class="aligncenter size-full wp-image-306" /></p>
+<ul>
+<li>$n = 1$, $G_t^{(1)} = R_{t+1} + \gamma V(S_{t+1})$, TD</li>
+<li>$n = 2$, $G_t^{(2)} = R_{t+1} + \gamma R_{t+2} + \gamma^2 V(S_{t+2})$</li>
+<li>$n = \infty$, $G_t^{(\infty)} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{T-1} R_{T}$, MC</li>
+</ul>
+<p>$$ G_t^{(n)} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1} R_{t+n} + \gamma^n V(S_{t+n}) $$</p>
+<p>$$ V(S_t) \gets V(S_t) + \alpha (G_t^{(n)} - V(S_t)) $$</p>
+<p>$\lambda$ return combines all n-step return with weight $(1-\lambda)\lambda^{n-1}$</p>
+<p><img src="/images/2017/rl-notes/rl3-lambda.png" alt="" width="589" height="687" class="aligncenter size-full wp-image-307" /></p>
+<p><img src="/images/2017/rl-notes/rl3-lambda-weight-1024x389.png" alt="" width="660" height="251" class="aligncenter size-large wp-image-308" /></p>
+<p>$$ G_t^\lambda = (1-\lambda)\sum_{n=1}^\infty \lambda^{n-1}G_t^{(n)} $$</p>
+<p>$$ V(S_t) \gets V(S_t) + \alpha(G_t^\lambda - V(S_t)) $$</p>
+<p>Forward view of $TD(\lambda)$</p>
+<p><img src="/images/2017/rl-notes/rl3-lambda-forward-1024x280.png" alt="" width="660" height="180" class="aligncenter size-large wp-image-310" /></p>
+<ul>
+<li>Update value function towards the $\lambda$-return</li>
+<li>Forward-view looks into the future to compute $G_t^\lambda$</li>
+<li>Like MC, can only be computed from complete episodes</li>
+</ul>
+<p>Backward view of $TD(\lambda)$</p>
+<p><img src="/images/2017/rl-notes/rl3-lambda-backward-1024x400.png" alt="" width="660" height="258" class="aligncenter size-large wp-image-313" /></p>
+<p>Eligibility traces</p>
+<p>$$ E_0(s) = 0 $$</p>
+<p>$$ E_t(s) = \gamma \lambda E_{t-1}(s) + 1(S_t=s) $$</p>
+<p>$$ \delta_t = R_{t+1} +\gamma V(S_{t+1}) - V(S_t) $$</p>
+<p>$$ V(s) \gets V(s) + \alpha \delta_t E_t(s) $$</p>
+<p>The sum of offline updates is identical for forward-view and backward view for $TD(\lambda)$</p>
+<p>$$ \sum_{t=1}^{T}\alpha \delta_t E_t(s) = \sum_{t=1}^T \alpha (G_t^\lambda - V(S_t))1(S_t=s) $$</p>
+<h1>Learning note on <a href="https://www.youtube.com/watch?v=0g4j2k_Ggc4">Model Free Control</a>.</h1>
+<p>Model-Free Control is about optimizing the value function of an <em>unknown</em> MDP.</p>
+<h3>On-policy Monte-Carlo Control</h3>
+<p>On-policy: Learn about policy $\pi$ from experience sampled from $\pi$. Off-policy: Learn about policy $\pi$ from experience sampled from $\mu$.</p>
+<p>Greedy policy improvement over $Q(s, a)$ is model free</p>
+<p>$$ \pi'(s) = \arg\max_{a \in A}Q(s, a) $$</p>
+<p>$\epsilon$-Greedy Exploration</p>
+<p>$$
+\pi'(a|s) =
+\begin{cases}
+\frac{\epsilon}{m} + 1 - \epsilon, &amp; a^\ast = \arg\max_{a \in A}Q(s, a) \\
+\frac{\epsilon}{m}, &amp; otherwise
+\end{cases}
+$$</p>
+<p><img src="/images/2017/rl-notes/rl4-mcc.png" alt="" width="860" height="509" class="aligncenter size-full wp-image-328" /></p>
+<p><strong>Every Episode</strong></p>
+<ul>
+<li>Policy evaluation: Monte-Carlo policy evaluation, $Q \approx q_\pi$</li>
+<li>Policy improvement: $\epsilon$-greedy improvement</li>
+</ul>
+<h3>On-policy TD Control</h3>
+<p><strong>SARSA</strong></p>
+<p><img src="/images/2017/rl-notes/rl4-sarsa-239x300.png" alt="" width="239" height="300" class="aligncenter size-medium wp-image-329" /></p>
+<p>$$ Q(S,A) \gets Q(S,A) + \alpha(R+\gamma Q(S',A') - Q(S,A)) $$</p>
+<p><img src="/images/2017/rl-notes/rl-sarsa2.png" alt="" width="807" height="488" class="aligncenter size-full wp-image-330" /></p>
+<p><strong>Every time step</strong></p>
+<ul>
+<li>Policy evaluation: Sarsa, $Q \approx q_\pi$</li>
+<li>Policy improvement: $\epsilon$-greedy improvement</li>
+</ul>
+<p><img src="/images/2017/rl-notes/rl4-sarsa-algo-1024x381.png" alt="" width="660" height="246" class="aligncenter size-large wp-image-331" /></p>
+<h3>Sarsa$(\lambda)$</h3>
+<p>n-Step Sarsa</p>
+<ul>
+<li>$n=1$, $q_t^{(1)} = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1})$, Sarsa</li>
+<li>$n=2$, $q_t^{(2)} = R_{t+1} + \gamma R_{t+1} + \gamma^s Q(S_{t+2}, A_{t+2})$</li>
+<li>$n=\infty$, $q_t^{(\infty)} = R_{t+1} +\gamma R_{t+2} + ... + \gamma^{T-1}R_T$</li>
+</ul>
+<p>$$ q_t^{(n)} = R_{t+1} + \gamma R_{t+2} + ... + \gamma^{n-1}R_{t+n} + \gamma^n Q(S_{t+n}, A_{t+n}) $$</p>
+<p>$$ Q(S_t, A_t) \gets Q(S_t, A_t) + \alpha (q_t^{(n)} - Q(S_t, A_t)) $$</p>
+<p>$\lambda$ return as TD$(\lambda)$</p>
+<p><img src="/images/2017/rl-notes/rl4-sarsa-lambda.png" alt="" width="527" height="528" class="aligncenter size-full wp-image-333" /></p>
+<p>$$ q_t^\lambda = (1-\lambda)\sum_{n=1}^\infty \lambda^{n-1}q_t^{(n)} $$</p>
+<p>Forward View</p>
+<p>$$ Q(S_t, A_t) \gets Q(S_t, A_t) + \alpha (q_t^{\lambda} - Q(S_t, A_t)) $$</p>
+<p>Backward View use <strong>eligibility traces</strong></p>
+<p>$$ E_0(s, a) = 0 $$</p>
+<p>$$ E_t(s, a) = \gamma \lambda E_{t-1}(s, a) + 1(S_t=s, A_t=a) $$</p>
+<p>$Q(s, a)$ is updated for every state $s$ and action $a$</p>
+<p>$$ \delta_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t) $$</p>
+<p>$$ Q(s, a) \gets Q(s, a) + \alpha \delta_t E_t(s, a) $$</p>
+<p><img src="/images/2017/rl-notes/rl4-sarsa-lambda-algo-1024x582.png" alt="" width="660" height="375" class="aligncenter size-large wp-image-334" /></p>
+<p>Sarsa $(\lambda)$ makes reward information flow backward to the path it follows</p>
+<p><img src="/images/2017/rl-notes/rl4-info-1024x332.png" alt="" width="660" height="214" class="aligncenter size-large wp-image-336" /></p>
+<h3>Off-policy Learning</h3>
+<p>targe policy $\pi$, behave policy $\mu$, with importance sampling</p>
+<p>$$ V(S_t) \gets V(S_t) + \alpha (\frac{\pi(A_t|S_t)}{\mu(A_t|S_t)}(R_{t+1} + \gamma V(S_{t+1})) - V(S_t)) $$</p>
+<p><strong>Q-Learning</strong></p>
+<ul>
+<li>Consider off-policy learning of action-value $Q(s,a)$</li>
+<li>No importance sampling required</li>
+<li>Next action is chosen using behavior policy $A_{t+1} \sim \mu(\cdot|S_t)$</li>
+<li>But consider alternative successor action $A' \sim \pi(\cdot|S_t)$</li>
+<li>Update $Q(S_t, A_t)$ towards value of alternative action</li>
+</ul>
+<p>$$ Q(S_t, A_t) \gets Q(S_t, A_t) + \alpha (R_{t+1} + \gamma Q(S_{t+1}, A') - Q(S_t, A_t)) $$</p>
+<p>policy $\pi$ is <strong>greedy</strong> w.r.t $Q(s,a)$, policy $\mu$ is $\epsilon$-greedy w.r.t $Q(s,a)$</p>
+<p>$$ \pi(S_{t+1}) = \arg\max_{a'}Q(S_{t+1}, a') $$</p>
+<p>$$ R_{t+1} + \gamma Q(S_{t+1}, A') = R_{t+1} + \max_{a'}\gamma Q(S_{t+1}, a') $$</p>
+<p><img src="/images/2017/rl-notes/rl4-q.png" alt="" width="301" height="280" class="aligncenter size-full wp-image-337" /></p>
+<p>$$ Q(S,A) \gets Q(S,A) + \alpha(R + \gamma \sum_{a'}Q(S', a') - Q(S,A)) $$</p>
+<p><img src="/images/2017/rl-notes/rl4-q-algo-1024x347.png" alt="" width="660" height="224" class="aligncenter size-large wp-image-338" /></p>
+<h3>Summary</h3>
+<p><img src="/images/2017/rl-notes/rl4-summary.png" alt="" width="1154" height="689" class="aligncenter size-full wp-image-341" /></p>
+<p><img src="/images/2017/rl-notes/rl4-summary-2.png" alt="" width="1160" height="460" class="aligncenter size-full wp-image-342" /></p>
+<h3>References</h3>
+<ul>
+<li><a href="http://www0.cs.ucl.ac.uk/staff/d.silver/web/Teaching.html">RL Course by David Silver</a></li>
+</ul>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

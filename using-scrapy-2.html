@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Scrapy 使用小记 2</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/using-scrapy-2.html" rel="bookmark"
+         title="Permalink to Scrapy 使用小记 2">Scrapy 使用小记 2</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2014-12-31T00:00:00+08:00">
+      Wed 31 December 2014
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/technology.html">Technology</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <h3>编写Spider</h3>
+<p>有了Scrapy为我们创建的初始项目，在这个基础上，我们就可以开始编写spider了。我们编写的spider将放在settings.py中指定的模块中，默认是在spiders模块下。我们需要创建一个文件来写我们的spider，Scrapy启动时会查找相应的spider并加载。</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+
+<span class="k">class</span> <span class="nc">DmozSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;dmoz&quot;</span>
+    <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;dmoz.org&quot;</span><span class="p">]</span>
+    <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/&quot;</span>
+    <span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+</pre></div>
+
+
+<p>这是<a href="http://doc.scrapy.org/en/latest/intro/tutorial.html">Scrapy官方教程</a>中的一个spider例子。name表示了爬虫的名字，allowed_domains里存放这个爬虫允许访问的域名，start_urls用来生成url请求，并将请求结果送入爬虫的parse方法作处理。这个类必须继承自scrapy.Spider，这样，Scrapy才知道这个类代表了爬虫。</p>
+<h3>编写Item</h3>
+<p>Item代表了从网页中提取出来的信息，我们可以从一个网页中提取到多个item，也可能是多种item，这取决于我们想要从页面中提取的信息。</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+
+<span class="k">class</span> <span class="nc">DmozItem</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Item</span><span class="p">):</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Field</span><span class="p">()</span>
+    <span class="n">link</span> <span class="o">=</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Field</span><span class="p">()</span>
+    <span class="n">desc</span> <span class="o">=</span> <span class="n">scrapy</span><span class="o">.</span><span class="n">Field</span><span class="p">()</span>
+</pre></div>
+
+
+<p>这段代码同样来自Scrapy的教程，我们自定义的Item需要继承自scrapy.item，每一个字段都是Field类型，可以保存任意类型的Python对象。其实我们可以把Item当作Python的dict使用，而在这里定义的属性名就是它的关键字。</p>
+<h3>Item与Spider相结合</h3>
+<p>有了Item，我们就可以在Spider中编写处理页面的逻辑了，也就是从页面中提取信息并包装成Item，然后抛给Scrapy框架作后续处理。在这里，我们不使用Scrapy教程中的例子，我们自己动手写写，来抓取想要的页面。</p>
+<p>我们来抓取<a href="http://www.pixiv.net/">Pixiv</a>网站上当天排名前50的插画信息。Pixiv是一家日本的插画交流网站，聚集了很多一流的绘画高手，当然插画的内容主要都是二次元的。不管这么多了，我们就来抓抓看。在动手写之前，我们需要分析分析如何抓取，具体来说就是要向哪个url发出请求，在得到请求结果之后得分析页面来提取我们想要的信息。其实P站(即Pixiv)已经有一个<a href="http://www.pixiv.net/ranking.php?mode=daily&amp;content=illust&amp;format=json">url</a>可以直接从这里获取当天插画排名的json数据。</p>
+<p>http://www.pixiv.net/ranking.php?mode=daily&amp;content=illust&amp;format=json。</p>
+<p>我们可以访问下面这个链接来看看今天的插画排名。</p>
+<p>http://www.pixiv.net/ranking.php?mode=daily&amp;content=illust</p>
+<p>通过这里的链接，我们看到的直接是一个网页了，而不是得到json格式的数据。方便起见，我们就直接抓json格式的数据。有时候我们不一定能够直接得到json格式的数据，而是要通过html文件，通过分析html源码来分析出数据，Scrapy也提供了相应的方法来帮助我们分析页面。在简单情况下，我们可以使用Python标准库中的正则表达式模块re，直接从html中提取信息，当这个过程很复杂时，我推荐使用Scrapy为我们提供的工具来分析页面，或者使用第三方页面分析库，比如<a href="http://www.crummy.com/software/BeautifulSoup/">Beautifuloup</a>。</p>
+<p>我们先来写Item，简单起见，我们只提取插画的标题和插画的url地址。</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">scrapy</span>
+<span class="kn">from</span> <span class="nn">scrapy</span> <span class="kn">import</span> <span class="n">Field</span>
+
+<span class="k">class</span> <span class="nc">IllustrationItem</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Item</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Item for Illustration on Pixiv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">title</span> <span class="o">=</span> <span class="n">Field</span><span class="p">()</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="n">Field</span><span class="p">()</span>
+</pre></div>
+
+
+<p>就是这么的简单，而我们需要抓取的页面上面已经提到了，再得到这个json数据后，我们可以直接用Python的json模块格式化数据，并一个一个提取信息，包装成Illustrationtem，抛给外层Scrapy框架。</p>
+<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">scrapy</span>
+<span class="kn">from</span> <span class="nn">spixiv.items</span> <span class="kn">import</span> <span class="n">IllustrationItem</span>
+
+<span class="k">class</span> <span class="nc">PixivSpider</span><span class="p">(</span><span class="n">scrapy</span><span class="o">.</span><span class="n">Spider</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Spider for daily top illustrations on Pixiv</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;pixiv&#39;</span>
+    <span class="n">allowed_domains</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;pixiv.net&#39;</span><span class="p">]</span>
+    <span class="n">start_urls</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;http://www.pixiv.net/ranking.php?mode=daily&amp;amp;content=illust&amp;amp;format=json&#39;</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">response</span><span class="p">):</span>
+        <span class="n">jsondata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+        <span class="n">date</span> <span class="o">=</span> <span class="n">jsondata</span><span class="p">[</span><span class="s1">&#39;date&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">one</span> <span class="ow">in</span> <span class="n">jsondata</span><span class="p">[</span><span class="s1">&#39;contents&#39;</span><span class="p">]:</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">IllustrationItem</span><span class="p">()</span>
+            <span class="n">item</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">]</span>
+            <span class="n">item</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">one</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">]</span>
+            <span class="k">yield</span> <span class="n">item</span>
+</pre></div>
+
+
+<p>我们使用Python标准库中的json模块来操作json格式的数据。这里的Item使用就像Python的dict一样，我们也可以给它的字段赋值复杂类型的对象，比如序列，当然，在后续有处理Item的代码必须得知道每个字段的类型。我们使用yield向外层框架抛出IllustrationItem，以便Scrapy对其作后续处理。</p>
+<h3>开始抓取数据</h3>
+<p>Scrapy提供了一个简单的命令来启动我们的爬虫。</p>
+<p><code>$ scrapy crawl [options] spider</code></p>
+<p>这里的options可以来配置scrapy的行为，而spider则是我们爬虫的名字。直接在项目的根目录下(含有scrapy.cfg的目录)运行<code>scrapy crawl pixiv</code>，Scrapy默认会把Item的信息输出到控制台中。</p>
+<div class="highlight"><pre><span></span><span class="mi">2015</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="w"> </span><span class="mi">00</span><span class="err">:</span><span class="mi">04</span><span class="err">:</span><span class="mi">48</span><span class="o">+</span><span class="mi">0800</span><span class="w"> </span><span class="o">[</span><span class="n">pixiv</span><span class="o">]</span><span class="w"> </span><span class="nl">DEBUG</span><span class="p">:</span><span class="w"> </span><span class="n">Scraped</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="mi">200</span><span class="w"> </span><span class="nl">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="p">.</span><span class="n">pixiv</span><span class="p">.</span><span class="n">net</span><span class="o">/</span><span class="n">ranking</span><span class="p">.</span><span class="n">php</span><span class="vm">?</span><span class="n">mode</span><span class="o">=</span><span class="n">daily</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">content</span><span class="o">=</span><span class="n">illust</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="nf">format</span><span class="o">=</span><span class="n">json</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="err">{</span><span class="s1">&#39;title&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;\u5bb6\u65cf\u3068\u592b\u5a66\u3068&#39;</span><span class="p">,</span><span class="w"></span>
+<span class="w">         </span><span class="s1">&#39;url&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;http://i2.pixiv.net/c/240x480/img-master/img/2014/12/29/23/08/03/47845529_p0_master1200.jpg&#39;</span><span class="err">}</span><span class="w"></span>
+<span class="mi">2015</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="w"> </span><span class="mi">00</span><span class="err">:</span><span class="mi">04</span><span class="err">:</span><span class="mi">48</span><span class="o">+</span><span class="mi">0800</span><span class="w"> </span><span class="o">[</span><span class="n">pixiv</span><span class="o">]</span><span class="w"> </span><span class="nl">DEBUG</span><span class="p">:</span><span class="w"> </span><span class="n">Scraped</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="mi">200</span><span class="w"> </span><span class="nl">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="p">.</span><span class="n">pixiv</span><span class="p">.</span><span class="n">net</span><span class="o">/</span><span class="n">ranking</span><span class="p">.</span><span class="n">php</span><span class="vm">?</span><span class="n">mode</span><span class="o">=</span><span class="n">daily</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">content</span><span class="o">=</span><span class="n">illust</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="nf">format</span><span class="o">=</span><span class="n">json</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="err">{</span><span class="s1">&#39;title&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;\u843d\u66f8\u304d\u307e\u3068\u3081 No.8&#39;</span><span class="p">,</span><span class="w"></span>
+<span class="w">         </span><span class="s1">&#39;url&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;http://i1.pixiv.net/c/240x480/img-master/img/2014/12/29/00/44/17/47829688_p0_master1200.jpg&#39;</span><span class="err">}</span><span class="w"></span>
+<span class="mi">2015</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="w"> </span><span class="mi">00</span><span class="err">:</span><span class="mi">04</span><span class="err">:</span><span class="mi">48</span><span class="o">+</span><span class="mi">0800</span><span class="w"> </span><span class="o">[</span><span class="n">pixiv</span><span class="o">]</span><span class="w"> </span><span class="nl">DEBUG</span><span class="p">:</span><span class="w"> </span><span class="n">Scraped</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="mi">200</span><span class="w"> </span><span class="nl">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="p">.</span><span class="n">pixiv</span><span class="p">.</span><span class="n">net</span><span class="o">/</span><span class="n">ranking</span><span class="p">.</span><span class="n">php</span><span class="vm">?</span><span class="n">mode</span><span class="o">=</span><span class="n">daily</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">content</span><span class="o">=</span><span class="n">illust</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="nf">format</span><span class="o">=</span><span class="n">json</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="err">{</span><span class="s1">&#39;title&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;BB\u3061\u3083\u3093&#39;</span><span class="p">,</span><span class="w"></span>
+<span class="w">         </span><span class="s1">&#39;url&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;http://i3.pixiv.net/c/240x480/img-master/img/2014/12/29/17/16/52/47839178_p0_master1200.jpg&#39;</span><span class="err">}</span><span class="w"></span>
+<span class="mi">2015</span><span class="o">-</span><span class="mi">01</span><span class="o">-</span><span class="mi">01</span><span class="w"> </span><span class="mi">00</span><span class="err">:</span><span class="mi">04</span><span class="err">:</span><span class="mi">48</span><span class="o">+</span><span class="mi">0800</span><span class="w"> </span><span class="o">[</span><span class="n">pixiv</span><span class="o">]</span><span class="w"> </span><span class="nl">DEBUG</span><span class="p">:</span><span class="w"> </span><span class="n">Scraped</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="o">&amp;</span><span class="n">lt</span><span class="p">;</span><span class="mi">200</span><span class="w"> </span><span class="nl">http</span><span class="p">:</span><span class="o">//</span><span class="n">www</span><span class="p">.</span><span class="n">pixiv</span><span class="p">.</span><span class="n">net</span><span class="o">/</span><span class="n">ranking</span><span class="p">.</span><span class="n">php</span><span class="vm">?</span><span class="n">mode</span><span class="o">=</span><span class="n">daily</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="n">content</span><span class="o">=</span><span class="n">illust</span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="nf">format</span><span class="o">=</span><span class="n">json</span><span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span><span class="w"></span>
+<span class="w">        </span><span class="err">{</span><span class="s1">&#39;title&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;-\u6708\u306e\u60f3\u3044-&#39;</span><span class="p">,</span><span class="w"></span>
+<span class="w">         </span><span class="s1">&#39;url&#39;</span><span class="err">:</span><span class="w"> </span><span class="n">u</span><span class="s1">&#39;http://i1.pixiv.net/c/240x480/img-master/img/2014/12/29/00/00/08/47828516_p0_master1200.jpg&#39;</span><span class="err">}</span><span class="w"></span>
+</pre></div>
+
+
+<p>我们也可以通过options参数将Item保存成json格式的数据。</p>
+<p><code>$ scrapy crawl pixiv -o illustration.json</code></p>
+<p>这样 ，Item的数据就会以json格式保存到illustration.json这个文件中了。</p>
+<h3>使用ItemPipeline对Item做进一步处理</h3>
+<p>Scrapy默认会帮我们建一个ItemPipeline，它什么也没有处理。而且在项目中使用Pipeline还必须配置一下settings.py这个文件</p>
+<div class="highlight"><pre><span></span><span class="n">ITEM_PIPELINES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;spixiv.pipelines.SpixivPipeline&#39;</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>这里指出了Pipeline定义的位置，是pipelines下的一个类。300是一个优先级数，因为可能不只一个Pipeline想要处理Item，它的取值范围是0～1000，值越小，优先级越高。</p>
+<div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">SpixivPipeline</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">process_item</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">spider</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">item</span>
+</pre></div>
+
+
+<p>这个类是创建项目时Scrapy自动帮我们建的，这也表示我们的Pipleline需要实现process_item这个方法，方法的参数item表示了一个Item实例，spider表示了一个Spider实例，两个代表从spider抛出了一个item。这样我们可以根据spider和item的类型来处理item。比如将item存入数据库中做持久的保存。</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

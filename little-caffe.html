@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="english">
+<head>
+    <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://luoyetx.github.io/theme/css/main.css" />
+
+
+    <link href="https://luoyetx.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="zhangjie Atom">
+
+
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="" />
+
+
+    <meta name="author" content="" />
+    <meta name="description" content="" />
+    <title>zhangjiezhangjie - Caffe 小试牛刀</title>
+
+</head>
+
+<body id="index" class="home">
+<section id="content" class="body">
+  <header>
+    <h2 class="entry-title">
+      <a href="https://luoyetx.github.io/little-caffe.html" rel="bookmark"
+         title="Permalink to Caffe 小试牛刀">Caffe 小试牛刀</a></h2>
+ 
+  </header>
+  <footer class="post-info">
+    <time class="published" datetime="2015-04-11T00:00:00+08:00">
+      Sat 11 April 2015
+    </time>
+    <div class="category">
+        Category: <a href="https://luoyetx.github.io/category/machine-learning.html">Machine Learning</a>
+    </div>
+  </footer><!-- /.post-info -->
+  <div class="entry-content">
+    <p>在 <a href="http://en.wikipedia.org/wiki/Deep_learning">Deep Learning</a> 如此火的今天，<a href="http://caffe.berkeleyvision.org/">Caffe</a> 的出现使得我们接触深度学习的门槛变得异常之低。在自己的笔记本或者远端服务器上部署这个 Caffe 框架也是异常简单，照着官方给出的安装文档可以在大部分 Linux 发行版和 Mac OS 上安装好这个深度学习框架。官方暂时没有给出 Windows 版本的 Caffe，不过社区已经有人移植到了 Windows 上，项目地址在 <a href="https://github.com/niuzhiheng/caffe">github</a> 上。我们尽量还是在 *nix 平台上部署 Caffe 框架。</p>
+<h3>Caffe 简介</h3>
+<p>Caffe 是一个清晰而高效的深度 <a href="http://en.wikipedia.org/wiki/Convolutional_neural_network">CNN</a> 学习框架，其作者是博士毕业于 UC Berkeley 的贾扬清，目前在Google工作。Caffe 支持命令行，并提供了 Python 和 Matlab 接口方便开发者和研究人员调用，而且其框架本身可以在 CPU/GPU 之间无缝切换，非常方便。Caffe 的详细文档在<a href="http://caffe.berkeleyvision.org/installation.html">这里</a>。根据官方文档安装完各种依赖库后就可以编译 Caffe 框架了，有些依赖库可能软件源中的版本过低或者根本就没有，可以自己源码编译安装。</p>
+<h3>Kaggle 上的数字识别</h3>
+<p><a href="https://www.kaggle.com/">Kaggle</a> 是一个数据竞赛平台，提供各种需求和数据给全世界的参赛者。其中有一个比赛项目是 <a href="https://www.kaggle.com/c/digit-recognizer">Digit Recognizer</a>，就是著名的手写体数字识别。<a href="http://en.wikipedia.org/wiki/Yann_LeCun">Yann LeCun</a> 提出的 <a href="http://yann.lecun.com/exdb/mnist/">LeNet</a> 已经能够很好地解决这个问题了，Caffe 官方的 Example 中就有 LeNet 的实现。我们就利用这个 CNN 网络模型再加上 Kaggle 提供的数据来走一边深度学习的流程，从数据的获得与清理，CNN 模型的训练，再到最后的数据预测。</p>
+<h3>利用 Caffe 解决 Kaggle 上的数字识别</h3>
+<p>Kaggle 给这个项目提供了两个数据，分别为训练数据和测试数据。但是我们拿到的数据并不是图片，而是 csv 格式的数据，至于数据的具体内容，Kaggle 官方有详细的说明，可以参考<a href="https://www.kaggle.com/c/digit-recognizer/data">这里</a>。</p>
+<h4>csv 数据预处理</h4>
+<p>Caffe 在训练时可以采用各种格式的输入数据(不同的 Data 层)，详细的格式参见官方<a href="http://caffe.berkeleyvision.org/tutorial/layers.html#data-layers">文档</a>。这里我采用了 HDF5 格式的输入数据，下面的代码将 csv 格式的数据转换成了 HDF5 格式的数据。代码采用了 Python 编写，利用 <a href="http://pandas.pydata.org/">Pandas</a> 来读取 cvs 数据，并用 <a href="http://www.h5py.org/">h5py</a> 来写 HDF5 格式的数据。</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+
+
+<span class="n">DATA_ROOT</span> <span class="o">=</span> <span class="s1">&#39;data&#39;</span>
+<span class="n">join</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span>
+<span class="n">TRAIN</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">DATA_ROOT</span><span class="p">,</span> <span class="s1">&#39;train.csv&#39;</span><span class="p">)</span>
+<span class="n">train_file</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">DATA_ROOT</span><span class="p">,</span> <span class="s1">&#39;mnist_train.h5&#39;</span><span class="p">)</span>
+<span class="n">test_file</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">DATA_ROOT</span><span class="p">,</span> <span class="s1">&#39;mnist_test.h5&#39;</span><span class="p">)</span>
+
+<span class="c1"># logger</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">sh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="n">sh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">sh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+
+<span class="c1"># load data from train.csv</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Load data from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">TRAIN</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">TRAIN</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Get </span><span class="si">%d</span><span class="s1"> Rows in dataset&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+
+<span class="c1"># random shuffle</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># all dataset</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">images</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+
+<span class="c1"># process data</span>
+<span class="n">images</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">images</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">))</span>
+<span class="n">images</span> <span class="o">=</span> <span class="n">images</span> <span class="o">/</span> <span class="mf">255.</span>
+
+<span class="c1"># train dataset number</span>
+<span class="n">trainset</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">/</span> <span class="mi">4</span>
+
+<span class="c1"># train dataset</span>
+<span class="n">labels_train</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[:</span><span class="n">trainset</span><span class="p">]</span>
+<span class="n">images_train</span> <span class="o">=</span> <span class="n">images</span><span class="p">[:</span><span class="n">trainset</span><span class="p">]</span>
+<span class="c1"># test dataset</span>
+<span class="n">labels_test</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">trainset</span><span class="p">:]</span>
+<span class="n">images_test</span> <span class="o">=</span> <span class="n">images</span><span class="p">[</span><span class="n">trainset</span><span class="p">:]</span>
+
+<span class="c1"># write to hdf5</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">train_file</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">train_file</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">test_file</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">test_file</span><span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Write train dataset to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">train_file</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">train_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels_train</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">f</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">images_train</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Write test dataset to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">test_file</span><span class="p">)</span>
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">test_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">labels_test</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">f</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">images_test</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Done&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>在这里，我把数据分割成了两部分，分别作为训练数据和测试数据(与 Kaggle 提供的 test.csv 数据不同，这里的测试数据是带有 label 的)，方便测试模型的准确性。</p>
+<h4>CNN 网络的训练</h4>
+<p>这里直接用 Caffe 自带的 Example 中的模型。网络的定义可以在 Caffe 源码目录中找到，这里我就不全贴了，只贴一下输入的 DataLayer。</p>
+<div class="highlight"><pre><span></span><span class="err">layer {</span>
+<span class="err">  name: &quot;mnist&quot;</span>
+<span class="err">  type: &quot;HDF5Data&quot;</span>
+<span class="err">  top: &quot;data&quot;</span>
+<span class="err">  top: &quot;label&quot;</span>
+<span class="err">  include {</span>
+<span class="err">    phase: TRAIN</span>
+<span class="err">  }</span>
+<span class="err">  hdf5_data_param {</span>
+<span class="err">    source: &quot;data/mnist_train.txt&quot;</span>
+<span class="err">    batch_size: 64</span>
+<span class="err">  }</span>
+<span class="err">}</span>
+<span class="err">layer {</span>
+<span class="err">  name: &quot;mnist&quot;</span>
+<span class="err">  type: &quot;HDF5Data&quot;</span>
+<span class="err">  top: &quot;data&quot;</span>
+<span class="err">  top: &quot;label&quot;</span>
+<span class="err">  include {</span>
+<span class="err">    phase: TEST</span>
+<span class="err">  }</span>
+<span class="err">  hdf5_data_param {</span>
+<span class="err">    source: &quot;data/mnist_test.txt&quot;</span>
+<span class="err">    batch_size: 100</span>
+<span class="err">  }</span>
+<span class="err">}</span>
+</pre></div>
+
+
+<p>其中的 data/mnist_train.txt 和 data/mnist_test.txt 记录数据文件的路径。下图是我用 <a href="http://www.graphviz.org/">Graphviz</a> 画的 LeNet 网络图。</p>
+<p>{% image fancybox center /assert/img/2015/04/lenet.jpg %}</p>
+<p>有了数据和网络定义，我们还需要训练网络时的参数配置，这些配置数据写在 lenet_solver.prototxt 中。具体含义可以参考<a href="http://caffe.berkeleyvision.org/tutorial/solver.html">文档</a>。</p>
+<div class="highlight"><pre><span></span><span class="err"># The train/test net protocol buffer definition</span>
+<span class="err"># 网络的定义文件路径</span>
+<span class="c">net: &quot;model/lenet_train_test.prototxt&quot;</span>
+<span class="err"># test_iter specifies how many forward passes the test should carry out.</span>
+<span class="err"># In the case of MNIST, we have test batch size 100 and 100 test iterations,</span>
+<span class="err"># covering the full 10,000 testing images.</span>
+<span class="err"># 每次测试时迭代 100 次</span>
+<span class="c">test_iter: 100</span>
+<span class="err"># Carry out testing every 500 training iterations.</span>
+<span class="err"># 训练网络模型时，每迭代 500 次作一次测试</span>
+<span class="c">test_interval: 500</span>
+<span class="err"># The base learning rate, momentum and the weight decay of the network.</span>
+<span class="err"># 初始学习率，权值衰减</span>
+<span class="c">base_lr: 0.01</span>
+<span class="c">momentum: 0.9</span>
+<span class="c">weight_decay: 0.0005</span>
+<span class="err"># The learning rate policy</span>
+<span class="err"># 网络学习参数的衰减方式及其参数</span>
+<span class="c">lr_policy: &quot;inv&quot;</span>
+<span class="c">gamma: 0.0001</span>
+<span class="c">power: 0.75</span>
+<span class="err"># Display every 100 iterations</span>
+<span class="err"># 每迭代 100 次显示网络的输出(loss 等数据)</span>
+<span class="c">display: 100</span>
+<span class="err"># The maximum number of iterations</span>
+<span class="err"># 训练迭代次数</span>
+<span class="c">max_iter: 10000</span>
+<span class="err"># snapshot intermediate results</span>
+<span class="err"># 每隔 5000 次迭代就把网络参数和网络的训练状态保存到文件系统</span>
+<span class="c">snapshot: 5000</span>
+<span class="c">snapshot_prefix: &quot;model/&quot;</span>
+<span class="err"># solver mode: CPU or GPU</span>
+<span class="err"># 采用 CPU</span>
+<span class="c">solver_mode: CPU</span>
+</pre></div>
+
+
+<p><code>caffe train --solver=model/lenet_solver.prototxt</code> 这条命令开始训练网络。下面是训练时的部分输出。</p>
+<div class="highlight"><pre><span></span><span class="err">I0411 21:21:04.364305 31883 solver.cpp:266] Iteration 0, Testing net (#0)</span>
+<span class="err">I0411 21:21:07.918603 31883 solver.cpp:315]     Test net output #0: accuracy = 0.0966</span>
+<span class="err">I0411 21:21:07.918660 31883 solver.cpp:315]     Test net output #1: loss = 2.3217 (* 1 = 2.3217 loss)</span>
+<span class="err">I0411 21:21:07.979472 31883 solver.cpp:189] Iteration 0, loss = 2.39515</span>
+<span class="err">I0411 21:21:07.979532 31883 solver.cpp:204]     Train net output #0: loss = 2.39515 (* 1 = 2.39515 loss)</span>
+<span class="err">I0411 21:21:07.979560 31883 solver.cpp:464] Iteration 0, lr = 0.01</span>
+<span class="err">I0411 21:21:13.373544 31883 solver.cpp:189] Iteration 100, loss = 0.309522</span>
+<span class="err">I0411 21:21:13.373603 31883 solver.cpp:204]     Train net output #0: loss = 0.309522 (* 1 = 0.309522 loss)</span>
+<span class="err">I0411 21:21:13.373621 31883 solver.cpp:464] Iteration 100, lr = 0.00992565</span>
+<span class="err">I0411 21:21:18.770283 31883 solver.cpp:189] Iteration 200, loss = 0.342084</span>
+<span class="err">I0411 21:21:18.770339 31883 solver.cpp:204]     Train net output #0: loss = 0.342084 (* 1 = 0.342084 loss)</span>
+<span class="err">I0411 21:21:18.770357 31883 solver.cpp:464] Iteration 200, lr = 0.00985258</span>
+<span class="err">I0411 21:21:24.270835 31883 solver.cpp:189] Iteration 300, loss = 0.178883</span>
+<span class="err">I0411 21:21:24.270900 31883 solver.cpp:204]     Train net output #0: loss = 0.178883 (* 1 = 0.178883 loss)</span>
+<span class="err">I0411 21:21:24.270920 31883 solver.cpp:464] Iteration 300, lr = 0.00978075</span>
+<span class="err">I0411 21:21:29.655320 31883 solver.cpp:189] Iteration 400, loss = 0.0702766</span>
+<span class="err">I0411 21:21:29.655375 31883 solver.cpp:204]     Train net output #0: loss = 0.0702766 (* 1 = 0.0702766 loss)</span>
+<span class="err">I0411 21:21:29.655393 31883 solver.cpp:464] Iteration 400, lr = 0.00971013</span>
+<span class="err">I0411 21:21:35.007863 31883 solver.cpp:266] Iteration 500, Testing net (#0)</span>
+<span class="err">I0411 21:21:38.496989 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9698</span>
+<span class="err">I0411 21:21:38.497042 31883 solver.cpp:315]     Test net output #1: loss = 0.0967276 (* 1 = 0.0967276 loss)</span>
+<span class="err">I0411 21:21:38.554558 31883 solver.cpp:189] Iteration 500, loss = 0.186758</span>
+<span class="err">I0411 21:21:38.554613 31883 solver.cpp:204]     Train net output #0: loss = 0.186758 (* 1 = 0.186758 loss)</span>
+<span class="err">I0411 21:21:38.554631 31883 solver.cpp:464] Iteration 500, lr = 0.00964069</span>
+<span class="err">I0411 21:21:43.980552 31883 solver.cpp:189] Iteration 600, loss = 0.112056</span>
+<span class="err">I0411 21:21:43.980610 31883 solver.cpp:204]     Train net output #0: loss = 0.112056 (* 1 = 0.112056 loss)</span>
+<span class="err">I0411 21:21:43.980628 31883 solver.cpp:464] Iteration 600, lr = 0.0095724</span>
+<span class="err">I0411 21:21:49.568586 31883 solver.cpp:189] Iteration 700, loss = 0.074904</span>
+<span class="err">I0411 21:21:49.568653 31883 solver.cpp:204]     Train net output #0: loss = 0.074904 (* 1 = 0.074904 loss)</span>
+<span class="err">I0411 21:21:49.568675 31883 solver.cpp:464] Iteration 700, lr = 0.00950522</span>
+<span class="err">I0411 21:21:54.960841 31883 solver.cpp:189] Iteration 800, loss = 0.220085</span>
+<span class="err">I0411 21:21:54.960911 31883 solver.cpp:204]     Train net output #0: loss = 0.220085 (* 1 = 0.220085 loss)</span>
+<span class="err">I0411 21:21:54.960932 31883 solver.cpp:464] Iteration 800, lr = 0.00943913</span>
+<span class="err">I0411 21:22:00.352416 31883 solver.cpp:189] Iteration 900, loss = 0.0172225</span>
+<span class="err">I0411 21:22:00.352488 31883 solver.cpp:204]     Train net output #0: loss = 0.0172226 (* 1 = 0.0172226 loss)</span>
+<span class="err">I0411 21:22:00.352511 31883 solver.cpp:464] Iteration 900, lr = 0.00937411</span>
+<span class="err">I0411 21:22:05.703879 31883 solver.cpp:266] Iteration 1000, Testing net (#0)</span>
+<span class="err">I0411 21:22:09.199872 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9801</span>
+<span class="err">I0411 21:22:09.199944 31883 solver.cpp:315]     Test net output #1: loss = 0.0650562 (* 1 = 0.0650562 loss)</span>
+<span class="err">I0411 21:22:09.256795 31883 solver.cpp:189] Iteration 1000, loss = 0.118511</span>
+<span class="err">I0411 21:22:09.256847 31883 solver.cpp:204]     Train net output #0: loss = 0.118511 (* 1 = 0.118511 loss)</span>
+<span class="err">I0411 21:22:09.256867 31883 solver.cpp:464] Iteration 1000, lr = 0.00931012</span>
+<span class="err">...</span>
+<span class="err">...</span>
+<span class="err">...</span>
+<span class="err">I0411 21:30:26.140774 31883 solver.cpp:266] Iteration 9000, Testing net (#0)</span>
+<span class="err">I0411 21:30:29.663858 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9898</span>
+<span class="err">I0411 21:30:29.663919 31883 solver.cpp:315]     Test net output #1: loss = 0.0369673 (* 1 = 0.0369673 loss)</span>
+<span class="err">I0411 21:30:29.715962 31883 solver.cpp:189] Iteration 9000, loss = 0.00257692</span>
+<span class="err">I0411 21:30:29.716016 31883 solver.cpp:204]     Train net output #0: loss = 0.00257717 (* 1 = 0.00257717 loss)</span>
+<span class="err">I0411 21:30:29.716032 31883 solver.cpp:464] Iteration 9000, lr = 0.00617924</span>
+<span class="err">I0411 21:30:35.261111 31883 solver.cpp:189] Iteration 9100, loss = 0.000706766</span>
+<span class="err">I0411 21:30:35.261175 31883 solver.cpp:204]     Train net output #0: loss = 0.000707015 (* 1 = 0.000707015 loss)</span>
+<span class="err">I0411 21:30:35.261193 31883 solver.cpp:464] Iteration 9100, lr = 0.00615496</span>
+<span class="err">I0411 21:30:40.733172 31883 solver.cpp:189] Iteration 9200, loss = 0.00721649</span>
+<span class="err">I0411 21:30:40.733232 31883 solver.cpp:204]     Train net output #0: loss = 0.00721672 (* 1 = 0.00721672 loss)</span>
+<span class="err">I0411 21:30:40.733252 31883 solver.cpp:464] Iteration 9200, lr = 0.0061309</span>
+<span class="err">I0411 21:30:46.430910 31883 solver.cpp:189] Iteration 9300, loss = 0.0106291</span>
+<span class="err">I0411 21:30:46.430974 31883 solver.cpp:204]     Train net output #0: loss = 0.0106294 (* 1 = 0.0106294 loss)</span>
+<span class="err">I0411 21:30:46.430991 31883 solver.cpp:464] Iteration 9300, lr = 0.00610706</span>
+<span class="err">I0411 21:30:52.084485 31883 solver.cpp:189] Iteration 9400, loss = 0.0217876</span>
+<span class="err">I0411 21:30:52.084548 31883 solver.cpp:204]     Train net output #0: loss = 0.0217879 (* 1 = 0.0217879 loss)</span>
+<span class="err">I0411 21:30:52.084563 31883 solver.cpp:464] Iteration 9400, lr = 0.00608343</span>
+<span class="err">I0411 21:30:57.599124 31883 solver.cpp:266] Iteration 9500, Testing net (#0)</span>
+<span class="err">I0411 21:31:01.165457 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9908</span>
+<span class="err">I0411 21:31:01.165515 31883 solver.cpp:315]     Test net output #1: loss = 0.0361107 (* 1 = 0.0361107 loss)</span>
+<span class="err">I0411 21:31:01.221964 31883 solver.cpp:189] Iteration 9500, loss = 0.00431475</span>
+<span class="err">I0411 21:31:01.222023 31883 solver.cpp:204]     Train net output #0: loss = 0.00431501 (* 1 = 0.00431501 loss)</span>
+<span class="err">I0411 21:31:01.222040 31883 solver.cpp:464] Iteration 9500, lr = 0.00606002</span>
+<span class="err">I0411 21:31:06.748987 31883 solver.cpp:189] Iteration 9600, loss = 0.00301128</span>
+<span class="err">I0411 21:31:06.749049 31883 solver.cpp:204]     Train net output #0: loss = 0.00301154 (* 1 = 0.00301154 loss)</span>
+<span class="err">I0411 21:31:06.749068 31883 solver.cpp:464] Iteration 9600, lr = 0.00603682</span>
+<span class="err">I0411 21:31:12.305821 31883 solver.cpp:189] Iteration 9700, loss = 0.0178924</span>
+<span class="err">I0411 21:31:12.305883 31883 solver.cpp:204]     Train net output #0: loss = 0.0178927 (* 1 = 0.0178927 loss)</span>
+<span class="err">I0411 21:31:12.305903 31883 solver.cpp:464] Iteration 9700, lr = 0.00601382</span>
+<span class="err">I0411 21:31:18.102248 31883 solver.cpp:189] Iteration 9800, loss = 0.0116095</span>
+<span class="err">I0411 21:31:18.102319 31883 solver.cpp:204]     Train net output #0: loss = 0.0116097 (* 1 = 0.0116097 loss)</span>
+<span class="err">I0411 21:31:18.102339 31883 solver.cpp:464] Iteration 9800, lr = 0.00599102</span>
+<span class="err">I0411 21:31:24.297734 31883 solver.cpp:189] Iteration 9900, loss = 0.0111304</span>
+<span class="err">I0411 21:31:24.297801 31883 solver.cpp:204]     Train net output #0: loss = 0.0111307 (* 1 = 0.0111307 loss)</span>
+<span class="err">I0411 21:31:24.297826 31883 solver.cpp:464] Iteration 9900, lr = 0.00596843</span>
+<span class="err">I0411 21:31:29.688841 31883 solver.cpp:334] Snapshotting to model/_iter_10000.caffemodel</span>
+<span class="err">I0411 21:31:29.713232 31883 solver.cpp:342] Snapshotting solver state to model/_iter_10000.solverstate</span>
+<span class="err">I0411 21:31:29.741745 31883 solver.cpp:248] Iteration 10000, loss = 0.0402425</span>
+<span class="err">I0411 21:31:29.741792 31883 solver.cpp:266] Iteration 10000, Testing net (#0)</span>
+<span class="err">I0411 21:31:33.262156 31883 solver.cpp:315]     Test net output #0: accuracy = 0.9902</span>
+<span class="err">I0411 21:31:33.262218 31883 solver.cpp:315]     Test net output #1: loss = 0.0349098 (* 1 = 0.0349098 loss)</span>
+<span class="err">I0411 21:31:33.262231 31883 solver.cpp:253] Optimization Done.</span>
+<span class="err">I0411 21:31:33.262240 31883 caffe.cpp:134] Optimization Done.</span>
+</pre></div>
+
+
+<p>我们可以发现到后面的准确率达到了 99% 以上，我怀疑是过拟合了。这里用 CPU(Intel(R) Core(TM) i5-4200U CPU @ 1.60GHz) 训练的时间只要 10 分钟左右，速度还是相当快的。这样就能得到训练好的网络参数用来做数据预测。</p>
+<h4>预测 test.csv 中的数据</h4>
+<p>test.csv 文件的数据格式与 train.csv 差不多，只是没有 label，因为这些 label 需要我们来预测。我采用了 Python 作预测，Caffe 为 Python 提供了相应的借口，编译 Caffe 时记得顺带编译 Python 模块，当然前提是你先装好相应的依赖库，numpy 肯定逃不掉，具体过程请看<a href="http://caffe.berkeleyvision.org/installation.html#python">文档</a>。</p>
+<p>我们先从 test.csv 中加载图像数据，做相应的预处理后交给 Caffe 做预测。初始化 Caffe 时需要上一步中的网络模型和训练得到的网络模型参数。</p>
+<div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">caffe</span>
+
+
+<span class="n">DATA_ROOT</span> <span class="o">=</span> <span class="s1">&#39;data&#39;</span>
+<span class="n">MODEL_ROOT</span> <span class="o">=</span> <span class="s1">&#39;model&#39;</span>
+<span class="n">join</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span>
+<span class="n">TEST</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">DATA_ROOT</span><span class="p">,</span> <span class="s1">&#39;test.csv&#39;</span><span class="p">)</span>
+<span class="n">OUTPUT</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">DATA_ROOT</span><span class="p">,</span> <span class="s1">&#39;result.csv&#39;</span><span class="p">)</span>
+<span class="n">CAFFE_MODEL</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">MODEL_ROOT</span><span class="p">,</span> <span class="s1">&#39;mnist.caffemodel&#39;</span><span class="p">)</span>
+<span class="n">CAFFE_SOLVER</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">MODEL_ROOT</span><span class="p">,</span> <span class="s1">&#39;lenet.prototxt&#39;</span><span class="p">)</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">sh</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">()</span>
+<span class="n">sh</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">DEBUG</span><span class="p">)</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> - </span><span class="si">%(levelname)s</span><span class="s1"> - </span><span class="si">%(message)s</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="n">sh</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">sh</span><span class="p">)</span>
+
+<span class="c1"># load test dataset</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Load test dataset from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">TEST</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">TEST</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">28</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">data</span> <span class="o">/</span> <span class="mf">255.</span>
+
+<span class="c1"># set caffe net</span>
+<span class="n">net</span> <span class="o">=</span> <span class="n">caffe</span><span class="o">.</span><span class="n">Classifier</span><span class="p">(</span><span class="n">CAFFE_SOLVER</span><span class="p">,</span> <span class="n">CAFFE_MODEL</span><span class="p">)</span>
+
+<span class="c1"># predict</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Start predict&#39;</span><span class="p">)</span>
+<span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="n">iter_k</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;ITER </span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">iter_k</span><span class="p">)</span>
+    <span class="n">batch</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">iter_k</span><span class="o">*</span><span class="n">BATCH_SIZE</span><span class="p">:</span> <span class="p">(</span><span class="n">iter_k</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">BATCH_SIZE</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">batch</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">break</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">net</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">batch</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">iter_k</span> <span class="o">=</span> <span class="n">iter_k</span> <span class="o">+</span> <span class="mi">1</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Prediction Done&#39;</span><span class="p">)</span>
+
+<span class="c1"># write to file</span>
+<span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Save result to </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">OUTPUT</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">OUTPUT</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">OUTPUT</span><span class="p">)</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">OUTPUT</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;ImageId,Label</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">):</span>
+        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">label</span><span class="p">))</span>
+        <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+</pre></div>
+
+
+<p>这里，我把预测结果按照 Kaggle 的要求写到了文件中，然后上传到 Kaggle 的评分系统中。</p>
+<p><img alt="caffe-kaggle-result" src="https://luoyetx.github.io/images/2015/caffe-kaggle-result.png"></p>
+<p>结果准确率有 95.5%，还是相当不错的。</p>
+<h3>小结</h3>
+<p>DL 已经相当流行了，Caffe 可以大大降低了入门的门槛。大牛们的论文都很开放，也开源了很多代码出来，方便我们这些门外汉学习和入门。大家有兴趣可以多接触接触。另外，我感觉到训练数据在 DL 的重要性可能已经超过了 DL 网络模型本身(虽然 DL 到现在也还是很难解释清楚其中的机理，但是它的成果还是能傲视群雄)。</p>
+  </div><!-- /.entry-content -->
+</section>
+    <footer class="footer">
+        <div class="text-center">
+            <small class="copyright">Designed with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Xiaoying Riley</a> for developers</small>
+            <br>
+            <small class="copyright">Ported to Pelican with <i class="fa fa-heart"></i> by <a href="http://themes.3rdwavemedia.com" target="_blank" rel="nofollow">Suhaib Khan</a></small>
+        </div><!--//container-->
+    </footer><!--//footer-->
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="https://luoyetx.github.io/theme/js/main.js"></script>
+</body>
+</html>

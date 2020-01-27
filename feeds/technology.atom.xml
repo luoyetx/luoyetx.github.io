@@ -1,0 +1,467 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>zhangjie - Technology</title><link href="https://luoyetx.github.io/" rel="alternate"></link><link href="https://luoyetx.github.io/feeds/technology.atom.xml" rel="self"></link><id>https://luoyetx.github.io/</id><updated>2015-12-07T00:00:00+08:00</updated><entry><title>Something You Should Kown About C/C++ Compiler</title><link href="https://luoyetx.github.io/compiler.html" rel="alternate"></link><published>2015-12-07T00:00:00+08:00</published><updated>2015-12-07T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-12-07:/compiler.html</id><summary type="html">&lt;p&gt;我以前经常问身边的同学关于 C/C++ 代码编译链接的问题，问他们知不知道这方面的细节。非常遗憾，绝大部分人连编译和链接都分不清楚，感慨学校教的 C 语言课太水了，很多同学也不怎么敲代码=。=，我写这篇文章记录一下我自己对 C/C++ 编译器的理解，希望也能帮助到其他同学，希望你们在遇到编译链接错误时，不要慌张，冷静分析，找对排查问题的方向。&lt;/p&gt;
+&lt;p&gt;我们都知道编译代码的过程分成 4 个环节，预处理，编译，汇编，链接（生成可执行文件或者库文件）。首先我们需要明确几点。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;头文件只参与预处理环节，跟编译和后续环节没有什么关系。&lt;/li&gt;
+&lt;li&gt;任何一个源文件都是独立编译，相互之间不干扰。&lt;/li&gt;
+&lt;li&gt;前三个环节并不涉及到第三方的库文件，但是在预处理环节会涉及到库的头文件。&lt;/li&gt;
+&lt;li&gt;预处理环节一般不会出错，哪怕你使用了一个未定义的宏，也不会出错，只会在编译时报错，而任何编译错误都不会跟库文件扯上任何关系。&lt;/li&gt;
+&lt;li&gt;汇编一般也不会出错，它只是编译器一个中间的隐性环节，把汇编代码编译成目标代码。&lt;/li&gt;
+&lt;li&gt;链接是天坑，标准库和第三方库的库文件都是在这个环节加入进来的。&lt;/li&gt;
+&lt;li&gt;我们遇到的问题，基本上都是编译出错或者链接出错。然而事情并没有那么简单。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;预处理&lt;/h3&gt;
+&lt;p&gt;预处理我们接触最多的就是包含头文件的 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;我以前经常问身边的同学关于 C/C++ 代码编译链接的问题，问他们知不知道这方面的细节。非常遗憾，绝大部分人连编译和链接都分不清楚，感慨学校教的 C 语言课太水了，很多同学也不怎么敲代码=。=，我写这篇文章记录一下我自己对 C/C++ 编译器的理解，希望也能帮助到其他同学，希望你们在遇到编译链接错误时，不要慌张，冷静分析，找对排查问题的方向。&lt;/p&gt;
+&lt;p&gt;我们都知道编译代码的过程分成 4 个环节，预处理，编译，汇编，链接（生成可执行文件或者库文件）。首先我们需要明确几点。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;头文件只参与预处理环节，跟编译和后续环节没有什么关系。&lt;/li&gt;
+&lt;li&gt;任何一个源文件都是独立编译，相互之间不干扰。&lt;/li&gt;
+&lt;li&gt;前三个环节并不涉及到第三方的库文件，但是在预处理环节会涉及到库的头文件。&lt;/li&gt;
+&lt;li&gt;预处理环节一般不会出错，哪怕你使用了一个未定义的宏，也不会出错，只会在编译时报错，而任何编译错误都不会跟库文件扯上任何关系。&lt;/li&gt;
+&lt;li&gt;汇编一般也不会出错，它只是编译器一个中间的隐性环节，把汇编代码编译成目标代码。&lt;/li&gt;
+&lt;li&gt;链接是天坑，标准库和第三方库的库文件都是在这个环节加入进来的。&lt;/li&gt;
+&lt;li&gt;我们遇到的问题，基本上都是编译出错或者链接出错。然而事情并没有那么简单。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h3&gt;预处理&lt;/h3&gt;
+&lt;p&gt;预处理我们接触最多的就是包含头文件的 &lt;code&gt;#include&lt;/code&gt; 和定义宏的 &lt;code&gt;#define&lt;/code&gt;，同时还有规范性的头文件保护宏。在这个环节出现最多的问题是找不到头文件，然后编译器停止工作。这个问题是最容易被解决的，但是很多人可能并不是很了解编译器寻找头文件的流程。这里我们首先要区分 3 种头文件，第一种是标准库的头文件，第二种是代码中引用到的第三方库的头文件，第三种是自己代码编写的头文件。编译器在工作时是有一个头文件目录列表的，根据目录列表去寻找头文件，第一个目录便是当前代码的所在的目录，其次是编译器自行定义的目录（一般是标准库头文件所在的目录），最后是我们自己在编译时加上的目录列表，可以有多个，包括需要引用的第三方库的头文件目录和自己代码的头文件目录（可能你自己写的头文件跟源文件不在一个目录下）。&lt;/p&gt;
+&lt;h3&gt;编译与汇编&lt;/h3&gt;
+&lt;p&gt;编译环节出错那基本就是语法的问题，代码写得有问题直接导致编译器停止工作。这里不得不提一下 C++11 标准，并不是所有编译器都实现了新标准的所有规范，同时可能编译器之间实现的特性还有差异，这些在写跨编译器或跨平台代码事要特别注意，同一个编译器的不同版本之间也会略有差异。&lt;/p&gt;
+&lt;h3&gt;链接&lt;/h3&gt;
+&lt;p&gt;链接环节出现问题非常之多，类型也是五花八门，奇奇怪怪，会非常坑。但是归根结底主要是两种，第一是链接时找不到符号，第二是链接时找到了多个符号。很多同学碰到链接出错时编译器吐出来的一堆一堆乱七八糟的函数符号估计都很蛋疼，但是我们多数时候碰到的都是 &lt;code&gt;undefined reference to xxx&lt;/code&gt;，即找不到符号。&lt;/p&gt;
+&lt;h5&gt;符号&lt;/h5&gt;
+&lt;p&gt;要搞明白链接时编译器是怎么工作的，我们就得先搞清楚 &lt;code&gt;符号&lt;/code&gt; 在编译系统中的作用。一个符号可以指代一块内存或者一段代码。代码中与符号相关的几处地方如下。&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;变量的声明，告诉编译器有这么一个变量指代一块内存。&lt;/li&gt;
+&lt;li&gt;变量的定义，告诉编译器需要为这个变量分配一块内存。&lt;/li&gt;
+&lt;li&gt;函数的声明，告诉编译器有这么一段代码可以使用，输入输出规范如何，应该怎么调用。&lt;/li&gt;
+&lt;li&gt;函数的定义，告诉编译器这段代码的逻辑实现。&lt;/li&gt;
+&lt;li&gt;引用变量或函数，代码中使用某个变量或者调用某个函数。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;extern&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// declare&lt;/span&gt;
+&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// define&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;();&lt;/span&gt; &lt;span class="c1"&gt;// declare&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt; &lt;span class="c1"&gt;// define&lt;/span&gt;
+  &lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;编译器会给每个变量和每个函数分配一个符号，这样做的好处是方便符号的重用（函数的重用），也利于项目代码的模块化，多个目标文件的链接。由于每个源文件代码都是独立编译的，并生成目标文件，编译器在处理这个源文件时，最后会在目标文件中指出它所需要的符号和它能够提供的符号，这样，链接器在链接一堆目标文件时（库所提供的目标文件和自己代码的目标文件）就能够为每个待确定的符号找到对应的符号，从而成功生成可执行文件或者库文件。&lt;/p&gt;
+&lt;h5&gt;找不到符号&lt;/h5&gt;
+&lt;p&gt;这个问题估计大部分同学在自己编译代码的时候都碰到过，绝大多数情况下都是编译时配置出错，没有告诉链接器应该去链接某个文件，而导致找不到符号。然而在有时候已经完全配置好了，还是会出现这种情况，即我知道这个库的符号全在这个目标文件中或者这个静态库或者这个动态库中，但是编译器还是报错说找不到符号。这种情况带出了一些更深层次的问题。&lt;/p&gt;
+&lt;h5&gt;C 与 C++ 其实并没有想象中那么和谐&lt;/h5&gt;
+&lt;p&gt;我们都知道 C++ 可以重载函数，类似于下面的这段代码。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;float&lt;/span&gt; &lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+  &lt;span class="n"&gt;x&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mf"&gt;0.f&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;C 中是不允许函数重名的，但是 C++ 中可以通过不同的输入参数类型和类型次序来重载同名函数，暂且不论重载带来的好处和坑，C++ 能这么做是因为 C++ 编译器会重写每个函数最后生成的符号，上面两个函数在编译完后会生成不同的符号，这样一来，对链接器来说其实函数名相同已经没有什么意义了。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;vagrant&lt;/span&gt;&lt;span class="nv"&gt;@trusty64&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="o"&gt;~/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;cat&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cpp&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;void&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nc"&gt;int&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+
+&lt;span class="n"&gt;void&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;foo&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nc"&gt;float&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;    &lt;/span&gt;&lt;span class="n"&gt;x&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mf"&gt;0.&lt;/span&gt;&lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;vagrant&lt;/span&gt;&lt;span class="nv"&gt;@trusty64&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="o"&gt;~/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;gcc&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;c&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;cpp&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;vagrant&lt;/span&gt;&lt;span class="nv"&gt;@trusty64&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="o"&gt;~/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;nm&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;o&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="mi"&gt;0000000000000010&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;T&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;_Z3foof&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="mi"&gt;0000000000000000&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;T&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;_Z3fooi&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="n"&gt;vagrant&lt;/span&gt;&lt;span class="nv"&gt;@trusty64&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="o"&gt;~/&lt;/span&gt;&lt;span class="n"&gt;test&lt;/span&gt;&lt;span class="err"&gt;$&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们可以看到 gcc 编译出来的符号已经跟函数名不一样了，符号包含了更多的信息，比如符号的类型（这个符号是个函数），和函数对应参数的类型，相当复杂。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;vagrant@trusty64:~/test$ cat a.c&lt;/span&gt;
+&lt;span class="err"&gt;void foo(int x) {&lt;/span&gt;
+&lt;span class="err"&gt;    x = 0;&lt;/span&gt;
+&lt;span class="err"&gt;}&lt;/span&gt;
+&lt;span class="err"&gt;vagrant@trusty64:~/test$ gcc -c a.c -o a.o&lt;/span&gt;
+&lt;span class="err"&gt;vagrant@trusty64:~/test$ nm a.o&lt;/span&gt;
+&lt;span class="err"&gt;0000000000000000 T foo&lt;/span&gt;
+&lt;span class="err"&gt;vagrant@trusty64:~/test$&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;相对来说 C 代码编译出来的符号是和函数名是一致的，同时符号中也不区分变量和函数。&lt;/p&gt;
+&lt;p&gt;以上的代码只是很简单的函数，如果加上命名空间，类函数等，编译器产生的符号会更加复杂，更加吓人，这也是为什么我们看到的链接出错中会有一长串的字符，因为 C++ 中的符号异常复杂，包含的信息太多。&lt;/p&gt;
+&lt;p&gt;编译器对 C 和 C++ 代码的处理方式不同，导致两者采用完全不一样的符号命名机制，这样会造成很多链接时的问题，所有我们可以看到好多 C 语言库的头文件里会写下面这种代码。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cp"&gt;#ifdef __cplusplus&lt;/span&gt;
+&lt;span class="k"&gt;extern&lt;/span&gt; &lt;span class="s"&gt;&amp;quot;C&amp;quot;&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+
+&lt;span class="p"&gt;......&lt;/span&gt;
+&lt;span class="p"&gt;......&lt;/span&gt;
+
+&lt;span class="cp"&gt;#ifdef __cplusplus&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;span class="cp"&gt;#endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;通过这种方式告诉编译器，这个头文件的所有符号请按照 C 语言的规则进行生成，不要采用 C++ 那套符号重写机制。如果不采取这种措施，就会导致原本在库中是 &lt;code&gt;foo&lt;/code&gt; 的符号被改写成 &lt;code&gt;_Z3fooi&lt;/code&gt; 类似的形式而造成链接失败。&lt;/p&gt;
+&lt;p&gt;以上这种问题本质上是编译器产生的符号于实际库中的符号不一致。C 和 C++ 不同的符号机制会导致这种情况，但是还有其他问题也会导致这种情况，事实上，一般 C 库的作者在这方面都考虑到了的，在头文件中设置宏是可以解决这种问题的，而且这个不需要使用库的人自行设定。&lt;/p&gt;
+&lt;h5&gt;C++ 编译器中符号的兼容性&lt;/h5&gt;
+&lt;p&gt;多数情况下，我们使用的第三方库都是库的提供者事先编译好的，这就带来了一个很大的隐患。同一个函数在库中的符号和我们编译器要寻找的符号可能不一致，这个问题在 MSVC 上尤为突出。除去动态库静态库的差异，针对相同编译器的不同版本，同一个函数可能生成的符号会不一样，这是最最坑爹的地方。看看 OpenCV 里 VC10，VC11，VC12 的各个目录就知道这个差异是非常大的。相对而言，gcc 不同版本之间的兼容性似乎就好很多。当然 C 的代码相对于 C++ 就好很多了，不可能出现这种坑爹的情况。&lt;/p&gt;
+&lt;h3&gt;总结&lt;/h3&gt;
+&lt;p&gt;胡说八道了一堆，希望能够帮助你理解 C/C++ 代码编译时出现的问题，从而针对性地寻求相应的解决方案。&lt;/p&gt;</content><category term="Technology"></category></entry><entry><title>Mini-Caffe: Porting Caffe to WIN32</title><link href="https://luoyetx.github.io/mini-caffe-porting-caffe-to-win32.html" rel="alternate"></link><published>2015-07-14T00:00:00+08:00</published><updated>2015-07-14T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-07-14:/mini-caffe-porting-caffe-to-win32.html</id><summary type="html">&lt;p&gt;Recently, Our team has slowly dived to Deep Learning. We did a lot of works relatived to Deep Learning and Computer Vision. At first, we used traditional way to deal with our cv problems but these days, we turned to Convolutional Neural Network and Deep Learning for a better performance …&lt;/p&gt;</summary><content type="html">&lt;p&gt;Recently, Our team has slowly dived to Deep Learning. We did a lot of works relatived to Deep Learning and Computer Vision. At first, we used traditional way to deal with our cv problems but these days, we turned to Convolutional Neural Network and Deep Learning for a better performance in face of our cv problems. Actually, CNN and DL has achieved the state-of-the-art of performance at various computer vision problems, and has been heavily studied in these days. I think our team starts to use CNN and DL to face our problems is very smart, and we should stick to DL for our future cv-related problems.&lt;/p&gt;
+&lt;p&gt;As we all konw, nowadays, DL has caused a widespread concern due to its extremely good performance compared with traditional ways. DL is a part of Machine Leaning and CNN is a part of DL. CNN is very suitable for computer vision(images). Because of Convolution Layer defined in CNN, 2-dimension input is allowed in CNN and CNN is a very powerful tool to deal with image-related machine learning tasks. Local connection and shared weight simplifies the neural network structure and makes it much easier to train the network. The Pooling Layer makes the network much more robust to the input. CNN could still use SGD to train the network as other models use. Above of all is part of goodness from DL, what's more important is that there are many excellent open source projects out of the world from researchers. They are very easy to access on github or google code(will be closed in future). Caffe is one of them. It is implemented in C++ and will be every fast with CUDA and CuDNN if you have a GPU on your machine. Of cause, there are other CNN implementations such as Theano in Python, Torch7 in Lua and DeepLearning4J in Java etc. Our team adopt Caffe not only it is fast in C++ but also the Python binding and Matlab binding provided by Caffe. It is easy to use caffe-tool to train CNN model and write Python and C++ code to test or run the CNN model, it costs a few time to write code with Python or C++ to run the models.&lt;/p&gt;
+&lt;p&gt;Installing Caffe on Linux or MacOSX is very easy, we just need to follow the document from Caffe and install all dependance it need and simply modify the Makefile to compile the Caffe source code, build Python binding is extremely easy with one command line provided by Caffe's Makefile. Beacause of the various Data Layer Caffe provides, there are many third party libraries needed to be install in order to compile the source code. But any way, who cares to install open source projects on Linux, they are far to much easy with package managers like apt-get and yum or others, we can even compile the third party libraries ourselves which costs little. The developers provide a stable version of Caffe running on Linux or Unix, but doesn't provide Windows support. Acctually, I'm strongly suggest you to deploy your Caffe enviroment on Linux Server with GPU supported. But we may develop our code on Windows or we may want to run our Caffe supported projects on Windows. It's a pity that official Caffe currently can not run on Windows. The community has develop an unofficial version of Caffe that can be installed and run on Windows, the project is &lt;a href="https://github.com/niuzhiheng/caffe"&gt;here&lt;/a&gt;. There are also other different solutions make Caffe run on Windows, but all these projects attempt to make full Caffe environment run on Windows, they need all third party libraries to be installed which they may compile themselves or the a pre-compiled version. These projects are great since they make Caffe runnable on Windows but they are not the solution to the situation that our team faced, actually, they are super solution to our situation, all works I did is base on these projects and make some little changes that make Caffe more smaller and easier to run on Windows.&lt;/p&gt;
+&lt;p&gt;As I mentioned above, projects out there are aiming to give a full environment of Caffe on Windows. They are more likely wanting to train the Caffe models on Windows, so they porting all DataLayer of Caffe since it is important for CNN to support various data format as input(Like HDF5, LMDB, LevelDB etc). But our team is just wanting a test environment of Caffe on windows, we still train our CNN models on Linux, and all we need is a MemoryLayer in Caffe to read CNN's input from memory. So, I remove all other DataLayers in Caffe which also reduce the number of third party libraries we need(actually, most of third party libraries needed is to support various DataLayer). Since I remove many DataLayer source code, we only need &lt;a href="http://opencv.org/"&gt;OpenCV&lt;/a&gt;, &lt;a href="http://www.boost.org/"&gt;Boost&lt;/a&gt;, &lt;a href="https://github.com/google/protobuf"&gt;protobuf&lt;/a&gt;, &lt;a href="https://github.com/google/glog"&gt;glog&lt;/a&gt; and &lt;a href="https://github.com/gflags/gflags"&gt;gflags&lt;/a&gt;, and these libraries are very easy to install on Windows whether we can compile ourselves or install an pre-compiled version. After install the third party libraries, we can compile Caffe source code and get the runtime core of Caffe working.&lt;/p&gt;
+&lt;p&gt;I have created a github project &lt;a href="https://github.com/luoyetx/mini-caffe"&gt;here&lt;/a&gt;. It remove all the source code that not needed for Caffe's runtime core, which including various DataLayer source code, extra tools like &lt;code&gt;train.cpp&lt;/code&gt; and some scripts for handling or preprocessing data. I also remove Matlab binding code but I still keep the Python binding code since I use Python a lot. I have not build Python binding due to the usage way on Windows, it still useful but not has much signification on Windows.&lt;/p&gt;
+&lt;p&gt;The project is working and our team now can develop and test Caffe-relative projects on Windows, otherwise, we usually develop on Windows and test on Linux Server which has a lot of trouble and unconvenient in this way.&lt;/p&gt;</content><category term="Technology"></category></entry><entry><title>Redis 源码之简单动态字符串</title><link href="https://luoyetx.github.io/redis-yuan-ma-zhi-jian-dan-dong-tai-zi-fu-chuan.html" rel="alternate"></link><published>2015-03-14T00:00:00+08:00</published><updated>2015-03-14T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2015-03-14:/redis-yuan-ma-zhi-jian-dan-dong-tai-zi-fu-chuan.html</id><summary type="html">&lt;p&gt;Redis 并没有使用 C 中的字符数组，而是自己实现了一个简单动态字符串 SDS 结构。Redis 利用一块连续内存空间实现了动态字符串（字符串也是以'\0'结束，与部分 C 字符串操作函数兼容）。与 sds 相关的源码在 sds.h 和 sds.c 两个文件中。&lt;/p&gt;
+&lt;h4&gt;SDS 结构定义&lt;/h4&gt;
+&lt;p&gt;&lt;img alt="redis-sdshr" src="https://luoyetx.github.io/images/2015/redis-sdshr.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;Redis 中定义了 sds 类型，实际为 char* 类型，结构体 sdshdr 可以理解为 sds 类型的头信息。sdshdr 和 sds 在内存中是一个整体，由 zmalloc(Redis 自己实现的一个 malloc 版本) 申请得到。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="kt"&gt;char …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;p&gt;Redis 并没有使用 C 中的字符数组，而是自己实现了一个简单动态字符串 SDS 结构。Redis 利用一块连续内存空间实现了动态字符串（字符串也是以'\0'结束，与部分 C 字符串操作函数兼容）。与 sds 相关的源码在 sds.h 和 sds.c 两个文件中。&lt;/p&gt;
+&lt;h4&gt;SDS 结构定义&lt;/h4&gt;
+&lt;p&gt;&lt;img alt="redis-sdshr" src="https://luoyetx.github.io/images/2015/redis-sdshr.jpg"&gt;&lt;/p&gt;
+&lt;p&gt;Redis 中定义了 sds 类型，实际为 char* 类型，结构体 sdshdr 可以理解为 sds 类型的头信息。sdshdr 和 sds 在内存中是一个整体，由 zmalloc(Redis 自己实现的一个 malloc 版本) 申请得到。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;typedef&lt;/span&gt; &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sds&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// sds 类型，实际等于 sdshdr 结构体中的 buf&lt;/span&gt;
+
+&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="kt"&gt;unsigned&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 整个字节数组buf的长度，实际 buf 指向的内存区域有 len+1 个字节（&amp;#39;\0&amp;#39;永远占一个字节）&lt;/span&gt;
+    &lt;span class="kt"&gt;unsigned&lt;/span&gt; &lt;span class="kt"&gt;int&lt;/span&gt; &lt;span class="n"&gt;free&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// buf 中剩余的字节数&lt;/span&gt;
+    &lt;span class="kt"&gt;char&lt;/span&gt; &lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;[];&lt;/span&gt; &lt;span class="c1"&gt;// 指向字节数组的指针&lt;/span&gt;
+&lt;span class="p"&gt;};&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h4&gt;SDS 基本操作函数&lt;/h4&gt;
+&lt;h5&gt;sds 字符串的创建与释放&lt;/h5&gt;
+&lt;p&gt;Redis 在初始化 sds 字符串时就会为 buf 申请一块连续的内存，紧跟在 buf 后面。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* Create a new sds string with the content specified by the &amp;#39;init&amp;#39; pointer&lt;/span&gt;
+&lt;span class="cm"&gt; * and &amp;#39;initlen&amp;#39;.&lt;/span&gt;
+&lt;span class="cm"&gt; * If NULL is used for &amp;#39;init&amp;#39; the string is initialized with zero bytes.&lt;/span&gt;
+&lt;span class="cm"&gt; * 利用 init 指针所指向的内容和 initlen 指定的长度来初始化 sds 字符串&lt;/span&gt;
+&lt;span class="cm"&gt; * 如果 init 为 NULL，则用字节&amp;#39;\0&amp;#39;来填充 sds 字符串&lt;/span&gt;
+&lt;span class="cm"&gt; *&lt;/span&gt;
+&lt;span class="cm"&gt; * The string is always null-termined (all the sds strings are, always) so&lt;/span&gt;
+&lt;span class="cm"&gt; * even if you create an sds string with:&lt;/span&gt;
+&lt;span class="cm"&gt; * 这个字符串永远都是以 NULL 结尾，哪怕你用下面的方式调用&lt;/span&gt;
+&lt;span class="cm"&gt; *&lt;/span&gt;
+&lt;span class="cm"&gt; * mystring = sdsnewlen(&amp;quot;abc&amp;quot;,3);&lt;/span&gt;
+&lt;span class="cm"&gt; *&lt;/span&gt;
+&lt;span class="cm"&gt; * You can print the string with printf() as there is an implicit \0 at the&lt;/span&gt;
+&lt;span class="cm"&gt; * end of the string. However the string is binary safe and can contain&lt;/span&gt;
+&lt;span class="cm"&gt; * \0 characters in the middle, as the length is stored in the sds header.&lt;/span&gt;
+&lt;span class="cm"&gt; * 由于字符串以&amp;#39;\0&amp;#39;结尾，你可以使用 printf() 来打印字符串，但字符串本身是二进制安全的，&lt;/span&gt;
+&lt;span class="cm"&gt; * 可以存放字节0，实际存放的字节数在 sds 头信息中 */&lt;/span&gt;
+&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="nf"&gt;sdsnewlen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;initlen&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="c1"&gt;// 申请一整块内存，内存前几个字节存放 sdshdr 信息，后面的即为字节数组&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;zmalloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;initlen&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt; &lt;span class="k"&gt;else&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+        &lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;zcalloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;initlen&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 以字节0填充&lt;/span&gt;
+    &lt;span class="p"&gt;}&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;initlen&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;free&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;initlen&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+        &lt;span class="n"&gt;memcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;init&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;initlen&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 复制数据&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;initlen&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;\0&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;char&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;释放 sds 字符串的内存十分简单，因为 sdshdr 和 sds 为一个整体，因此释放时之需提供 sdshdr 的地址，即 &lt;code&gt;sds - sizeof(struct sdshdr)&lt;/code&gt;。释放的函数 zfree 也是 Redis 自己实现的 free 版本&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* Free an sds string. No operation is performed if &amp;#39;s&amp;#39; is NULL. */&lt;/span&gt;
+&lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="nf"&gt;sdsfree&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;return&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;zfree&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;));&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h5&gt;sds 字符串的动态调整&lt;/h5&gt;
+&lt;p&gt;sds 字符串最关键的就是它的长度的动态调整，包括字节数组的拓展和压缩。&lt;/p&gt;
+&lt;p&gt;Redis 提供了一个函数用来拓展 sds 字符串的长度，这个函数用来拓展一个 sds 字符串的空余长度，由输入参数 addlen 控制，表示需要有 addlen 个空余字节数。实际 Redis 在操作时会判断字符串的长度，如果拓展后的总长度（已用和未用的字节数）少于 1M，则新的总长度为拓展后的 2 倍，否则新的总长度为拓展后总长度加 1M。这样做的目的就是为了减少 Redis 内存分配的次数，下次需要拓展时可能就不需要分配内存了。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* Enlarge the free space at the end of the sds string so that the caller&lt;/span&gt;
+&lt;span class="cm"&gt; * is sure that after calling this function can overwrite up to addlen&lt;/span&gt;
+&lt;span class="cm"&gt; * bytes after the end of the string, plus one more byte for nul term.&lt;/span&gt;
+&lt;span class="cm"&gt; *&lt;/span&gt;
+&lt;span class="cm"&gt; * Note: this does not change the *length* of the sds string as returned&lt;/span&gt;
+&lt;span class="cm"&gt; * by sdslen(), but only the free buffer space we have. */&lt;/span&gt;
+&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="nf"&gt;sdsMakeRoomFor&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;addlen&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;newsh&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;free&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sdsavail&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;newlen&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;free&lt;/span&gt; &lt;span class="o"&gt;&amp;gt;=&lt;/span&gt; &lt;span class="n"&gt;addlen&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 已有的空闲字节数大于要求的字节数，没必要拓展&lt;/span&gt;
+    &lt;span class="n"&gt;len&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sdslen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt; &lt;span class="c1"&gt;// sdshdr 指针&lt;/span&gt;
+    &lt;span class="n"&gt;newlen&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;addlen&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;newlen&lt;/span&gt; &lt;span class="o"&gt;&amp;lt;&lt;/span&gt; &lt;span class="n"&gt;SDS_MAX_PREALLOC&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="c1"&gt;// SDS_MAX_PREALLOC = 1024*1024&lt;/span&gt;
+        &lt;span class="n"&gt;newlen&lt;/span&gt; &lt;span class="o"&gt;*=&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;else&lt;/span&gt;
+        &lt;span class="n"&gt;newlen&lt;/span&gt; &lt;span class="o"&gt;+=&lt;/span&gt; &lt;span class="n"&gt;SDS_MAX_PREALLOC&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;newsh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;zrealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;newlen&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// &amp;#39;\0&amp;#39;需要固定的一个字节&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;newsh&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 分配失败&lt;/span&gt;
+
+    &lt;span class="n"&gt;newsh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;free&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;newlen&lt;/span&gt; &lt;span class="o"&gt;-&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="c1"&gt;// 更新空闲长度，不包括&amp;#39;\0&amp;#39;&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;newsh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;sds 字符串既然有拓展，当然也会有压缩。Redis 使用了 sdsRemoveFreeSpace 函数用来回收 sds 字符串中的所有空余空间，实际操作时 Redis 会重新分配一块内存，将原有的数据复制到新的内存区域，并释放原有空间。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* Reallocate the sds string so that it has no free space at the end. The&lt;/span&gt;
+&lt;span class="cm"&gt; * contained string remains not altered, but next concatenation operations&lt;/span&gt;
+&lt;span class="cm"&gt; * will require a reallocation.&lt;/span&gt;
+&lt;span class="cm"&gt; * 重新分配 sds 字符串的空间，使它没有空余空间。&lt;/span&gt;
+&lt;span class="cm"&gt; * 字符串中的内容不会改变，但是下次作字符串连接操作时，又会重新分配内存&lt;/span&gt;
+&lt;span class="cm"&gt; *&lt;/span&gt;
+&lt;span class="cm"&gt; * After the call, the passed sds string is no longer valid and all the&lt;/span&gt;
+&lt;span class="cm"&gt; * references must be substituted with the new pointer returned by the call.&lt;/span&gt;
+&lt;span class="cm"&gt; * 函数调用后，输入的指针 s 将会变成无效的 */&lt;/span&gt;
+&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="nf"&gt;sdsRemoveFreeSpace&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+
+    &lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;zrealloc&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 重新分配内存&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;free&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;buf&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h5&gt;sds 字符串的操作函数&lt;/h5&gt;
+&lt;p&gt;sds 字符串除了部分兼容 C 的字符串操作函数，Redis 自身也实现了一些 sds 字符串操作函数，包括字符串连接函数 sdscat 系列，整数转换成字符串，格式化字符串，字符串分割等很多操作。&lt;/p&gt;
+&lt;p&gt;sdscat 系列函数中最基础的就是 &lt;code&gt;sds sdscatlen(sds s, const void *t, size_t len)&lt;/code&gt; 函数，它将指针 t 指向的内存空间的 len 个字节连接到 s 字符串上。其他的 cat 操作都是基于这个函数的。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="cm"&gt;/* Append the specified binary-safe string pointed by &amp;#39;t&amp;#39; of &amp;#39;len&amp;#39; bytes to the&lt;/span&gt;
+&lt;span class="cm"&gt; * end of the specified sds string &amp;#39;s&amp;#39;.&lt;/span&gt;
+&lt;span class="cm"&gt; *&lt;/span&gt;
+&lt;span class="cm"&gt; * After the call, the passed sds string is no longer valid and all the&lt;/span&gt;
+&lt;span class="cm"&gt; * references must be substituted with the new pointer returned by the call. */&lt;/span&gt;
+&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="nf"&gt;sdscatlen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;sds&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="k"&gt;const&lt;/span&gt; &lt;span class="kt"&gt;void&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt; &lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="kt"&gt;size_t&lt;/span&gt; &lt;span class="n"&gt;curlen&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sdslen&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt;
+
+    &lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sdsMakeRoomFor&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 分配足够的内存空间&lt;/span&gt;
+    &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt; &lt;span class="o"&gt;==&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="nb"&gt;NULL&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="kt"&gt;void&lt;/span&gt;&lt;span class="o"&gt;*&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;sizeof&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="k"&gt;struct&lt;/span&gt; &lt;span class="n"&gt;sdshdr&lt;/span&gt;&lt;span class="p"&gt;)));&lt;/span&gt; &lt;span class="c1"&gt;// 内存变更过后的 sdshdr 指针&lt;/span&gt;
+    &lt;span class="n"&gt;memcpy&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;curlen&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;t&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;);&lt;/span&gt; &lt;span class="c1"&gt;// 复制&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;curlen&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;free&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;sh&lt;/span&gt;&lt;span class="o"&gt;-&amp;gt;&lt;/span&gt;&lt;span class="n"&gt;free&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;curlen&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="n"&gt;len&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="sc"&gt;&amp;#39;\0&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+    &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;s&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;code&gt;sds sdstrim(sds s, const char *cset)&lt;/code&gt; 实现了字符串左右的 trim 操作。&lt;code&gt;void sdsrange(sds s, int start, int end)&lt;/code&gt; 实现了字符串的子串操作，支持负索引。&lt;code&gt;void sdstolower(sds s)&lt;/code&gt; 和 &lt;code&gt;void sdstoupper(sds s)&lt;/code&gt; 调用了 C 内置的大小写转换函数用来实现 sds 字符串的大小写转换。Redis 还实现了其他很多字符串操作，很值得学习。&lt;/p&gt;
+&lt;h4&gt;SDS 小结&lt;/h4&gt;
+&lt;p&gt;sds 字符串是 Redis 中最基础的结构，使用一块连续内存来存放字符串的元信息和数据，减少了内存操作，申请与释放都只需要一次操作，而有了字符串的元信息，很多字符串的操作就能够得到优化，最简单的例子就是计算字符串的长度，C 中的 strlen 函数复杂度为 O(n)，而 Redis 中计算长度只是 O(1) 的操作。SDS 结构只是 Redis 中最基础的数据结构，不依赖其他 Redis 的数据结构，源码相对简单，但其中的设计仍然值得好好体味和学习。&lt;/p&gt;</content><category term="Technology"></category></entry><entry><title>Scrapy 使用小记 2</title><link href="https://luoyetx.github.io/using-scrapy-2.html" rel="alternate"></link><published>2014-12-31T00:00:00+08:00</published><updated>2014-12-31T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2014-12-31:/using-scrapy-2.html</id><summary type="html">&lt;h3&gt;编写Spider&lt;/h3&gt;
+&lt;p&gt;有了Scrapy为我们创建的初始项目，在这个基础上，我们就可以开始编写spider了。我们编写的spider将放在settings.py中指定的模块中，默认是在spiders模块下。我们需要创建一个文件来写我们的spider，Scrapy启动时会查找相应的spider并加载。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;DmozSpider&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Spider&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;dmoz&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;allowed_domains&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dmoz.org&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;start_urls&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+        &lt;span class="s2"&gt;&amp;quot;http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s2"&gt;&amp;quot;http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/&amp;quot;&lt;/span&gt;
+    &lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;parse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;filename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open …&lt;/span&gt;&lt;/pre&gt;&lt;/div&gt;</summary><content type="html">&lt;h3&gt;编写Spider&lt;/h3&gt;
+&lt;p&gt;有了Scrapy为我们创建的初始项目，在这个基础上，我们就可以开始编写spider了。我们编写的spider将放在settings.py中指定的模块中，默认是在spiders模块下。我们需要创建一个文件来写我们的spider，Scrapy启动时会查找相应的spider并加载。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;DmozSpider&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Spider&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s2"&gt;&amp;quot;dmoz&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;allowed_domains&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;dmoz.org&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;start_urls&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;
+        &lt;span class="s2"&gt;&amp;quot;http://www.dmoz.org/Computers/Programming/Languages/Python/Books/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+        &lt;span class="s2"&gt;&amp;quot;http://www.dmoz.org/Computers/Programming/Languages/Python/Resources/&amp;quot;&lt;/span&gt;
+    &lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;parse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;filename&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;url&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;split&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;/&amp;quot;&lt;/span&gt;&lt;span class="p"&gt;)[&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;filename&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;wb&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+            &lt;span class="n"&gt;f&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;write&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这是&lt;a href="http://doc.scrapy.org/en/latest/intro/tutorial.html"&gt;Scrapy官方教程&lt;/a&gt;中的一个spider例子。name表示了爬虫的名字，allowed_domains里存放这个爬虫允许访问的域名，start_urls用来生成url请求，并将请求结果送入爬虫的parse方法作处理。这个类必须继承自scrapy.Spider，这样，Scrapy才知道这个类代表了爬虫。&lt;/p&gt;
+&lt;h3&gt;编写Item&lt;/h3&gt;
+&lt;p&gt;Item代表了从网页中提取出来的信息，我们可以从一个网页中提取到多个item，也可能是多种item，这取决于我们想要从页面中提取的信息。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;DmozItem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Item&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Field&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;link&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Field&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;desc&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Field&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这段代码同样来自Scrapy的教程，我们自定义的Item需要继承自scrapy.item，每一个字段都是Field类型，可以保存任意类型的Python对象。其实我们可以把Item当作Python的dict使用，而在这里定义的属性名就是它的关键字。&lt;/p&gt;
+&lt;h3&gt;Item与Spider相结合&lt;/h3&gt;
+&lt;p&gt;有了Item，我们就可以在Spider中编写处理页面的逻辑了，也就是从页面中提取信息并包装成Item，然后抛给Scrapy框架作后续处理。在这里，我们不使用Scrapy教程中的例子，我们自己动手写写，来抓取想要的页面。&lt;/p&gt;
+&lt;p&gt;我们来抓取&lt;a href="http://www.pixiv.net/"&gt;Pixiv&lt;/a&gt;网站上当天排名前50的插画信息。Pixiv是一家日本的插画交流网站，聚集了很多一流的绘画高手，当然插画的内容主要都是二次元的。不管这么多了，我们就来抓抓看。在动手写之前，我们需要分析分析如何抓取，具体来说就是要向哪个url发出请求，在得到请求结果之后得分析页面来提取我们想要的信息。其实P站(即Pixiv)已经有一个&lt;a href="http://www.pixiv.net/ranking.php?mode=daily&amp;amp;content=illust&amp;amp;format=json"&gt;url&lt;/a&gt;可以直接从这里获取当天插画排名的json数据。&lt;/p&gt;
+&lt;p&gt;http://www.pixiv.net/ranking.php?mode=daily&amp;amp;content=illust&amp;amp;format=json。&lt;/p&gt;
+&lt;p&gt;我们可以访问下面这个链接来看看今天的插画排名。&lt;/p&gt;
+&lt;p&gt;http://www.pixiv.net/ranking.php?mode=daily&amp;amp;content=illust&lt;/p&gt;
+&lt;p&gt;通过这里的链接，我们看到的直接是一个网页了，而不是得到json格式的数据。方便起见，我们就直接抓json格式的数据。有时候我们不一定能够直接得到json格式的数据，而是要通过html文件，通过分析html源码来分析出数据，Scrapy也提供了相应的方法来帮助我们分析页面。在简单情况下，我们可以使用Python标准库中的正则表达式模块re，直接从html中提取信息，当这个过程很复杂时，我推荐使用Scrapy为我们提供的工具来分析页面，或者使用第三方页面分析库，比如&lt;a href="http://www.crummy.com/software/BeautifulSoup/"&gt;Beautifuloup&lt;/a&gt;。&lt;/p&gt;
+&lt;p&gt;我们先来写Item，简单起见，我们只提取插画的标题和插画的url地址。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;Field&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;IllustrationItem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Item&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;Item for Illustration on Pixiv&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;title&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Field&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+    &lt;span class="n"&gt;url&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;Field&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;就是这么的简单，而我们需要抓取的页面上面已经提到了，再得到这个json数据后，我们可以直接用Python的json模块格式化数据，并一个一个提取信息，包装成Illustrationtem，抛给外层Scrapy框架。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;spixiv.items&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;IllustrationItem&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;PixivSpider&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Spider&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="sd"&gt;&amp;quot;&amp;quot;&amp;quot;Spider for daily top illustrations on Pixiv&lt;/span&gt;
+&lt;span class="sd"&gt;    &amp;quot;&amp;quot;&amp;quot;&lt;/span&gt;
+    &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;pixiv&amp;#39;&lt;/span&gt;
+    &lt;span class="n"&gt;allowed_domains&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;pixiv.net&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+    &lt;span class="n"&gt;start_urls&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;http://www.pixiv.net/ranking.php?mode=daily&amp;amp;amp;content=illust&amp;amp;amp;format=json&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;parse&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="n"&gt;jsondata&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;loads&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;response&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;body&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+
+        &lt;span class="n"&gt;date&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;jsondata&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;date&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+        &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;one&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;jsondata&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;contents&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+            &lt;span class="n"&gt;item&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;IllustrationItem&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+            &lt;span class="n"&gt;item&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;one&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+            &lt;span class="n"&gt;item&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;url&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;one&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;url&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+            &lt;span class="k"&gt;yield&lt;/span&gt; &lt;span class="n"&gt;item&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们使用Python标准库中的json模块来操作json格式的数据。这里的Item使用就像Python的dict一样，我们也可以给它的字段赋值复杂类型的对象，比如序列，当然，在后续有处理Item的代码必须得知道每个字段的类型。我们使用yield向外层框架抛出IllustrationItem，以便Scrapy对其作后续处理。&lt;/p&gt;
+&lt;h3&gt;开始抓取数据&lt;/h3&gt;
+&lt;p&gt;Scrapy提供了一个简单的命令来启动我们的爬虫。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ scrapy crawl [options] spider&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这里的options可以来配置scrapy的行为，而spider则是我们爬虫的名字。直接在项目的根目录下(含有scrapy.cfg的目录)运行&lt;code&gt;scrapy crawl pixiv&lt;/code&gt;，Scrapy默认会把Item的信息输出到控制台中。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="mi"&gt;2015&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;04&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;48&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;0800&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;Scraped&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;from&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;lt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;net&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ranking&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="vm"&gt;?&lt;/span&gt;&lt;span class="n"&gt;mode&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;daily&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;illust&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="nf"&gt;format&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;\u5bb6\u65cf\u3068\u592b\u5a66\u3068&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;url&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;http://i2.pixiv.net/c/240x480/img-master/img/2014/12/29/23/08/03/47845529_p0_master1200.jpg&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="mi"&gt;2015&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;04&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;48&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;0800&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;Scraped&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;from&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;lt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;net&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ranking&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="vm"&gt;?&lt;/span&gt;&lt;span class="n"&gt;mode&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;daily&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;illust&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="nf"&gt;format&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;\u843d\u66f8\u304d\u307e\u3068\u3081 No.8&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;url&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;http://i1.pixiv.net/c/240x480/img-master/img/2014/12/29/00/44/17/47829688_p0_master1200.jpg&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="mi"&gt;2015&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;04&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;48&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;0800&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;Scraped&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;from&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;lt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;net&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ranking&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="vm"&gt;?&lt;/span&gt;&lt;span class="n"&gt;mode&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;daily&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;illust&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="nf"&gt;format&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;BB\u3061\u3083\u3093&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;url&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;http://i3.pixiv.net/c/240x480/img-master/img/2014/12/29/17/16/52/47839178_p0_master1200.jpg&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="mi"&gt;2015&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="o"&gt;-&lt;/span&gt;&lt;span class="mi"&gt;01&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="mi"&gt;00&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;04&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="mi"&gt;48&lt;/span&gt;&lt;span class="o"&gt;+&lt;/span&gt;&lt;span class="mi"&gt;0800&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;[&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="o"&gt;]&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;DEBUG&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;Scraped&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="k"&gt;from&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;lt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="mi"&gt;200&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="nl"&gt;http&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;&lt;span class="o"&gt;//&lt;/span&gt;&lt;span class="n"&gt;www&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;pixiv&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;net&lt;/span&gt;&lt;span class="o"&gt;/&lt;/span&gt;&lt;span class="n"&gt;ranking&lt;/span&gt;&lt;span class="p"&gt;.&lt;/span&gt;&lt;span class="n"&gt;php&lt;/span&gt;&lt;span class="vm"&gt;?&lt;/span&gt;&lt;span class="n"&gt;mode&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;daily&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="n"&gt;content&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;illust&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;amp&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="nf"&gt;format&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;        &lt;/span&gt;&lt;span class="err"&gt;{&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;title&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;-\u6708\u306e\u60f3\u3044-&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;span class="w"&gt;         &lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;url&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;:&lt;/span&gt;&lt;span class="w"&gt; &lt;/span&gt;&lt;span class="n"&gt;u&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;http://i1.pixiv.net/c/240x480/img-master/img/2014/12/29/00/00/08/47828516_p0_master1200.jpg&amp;#39;&lt;/span&gt;&lt;span class="err"&gt;}&lt;/span&gt;&lt;span class="w"&gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们也可以通过options参数将Item保存成json格式的数据。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ scrapy crawl pixiv -o illustration.json&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这样 ，Item的数据就会以json格式保存到illustration.json这个文件中了。&lt;/p&gt;
+&lt;h3&gt;使用ItemPipeline对Item做进一步处理&lt;/h3&gt;
+&lt;p&gt;Scrapy默认会帮我们建一个ItemPipeline，它什么也没有处理。而且在项目中使用Pipeline还必须配置一下settings.py这个文件&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;ITEM_PIPELINES&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;
+    &lt;span class="s1"&gt;&amp;#39;spixiv.pipelines.SpixivPipeline&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="mi"&gt;300&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt;
+&lt;span class="p"&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这里指出了Pipeline定义的位置，是pipelines下的一个类。300是一个优先级数，因为可能不只一个Pipeline想要处理Item，它的取值范围是0～1000，值越小，优先级越高。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SpixivPipeline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;process_item&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;item&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;spider&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;item&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个类是创建项目时Scrapy自动帮我们建的，这也表示我们的Pipleline需要实现process_item这个方法，方法的参数item表示了一个Item实例，spider表示了一个Spider实例，两个代表从spider抛出了一个item。这样我们可以根据spider和item的类型来处理item。比如将item存入数据库中做持久的保存。&lt;/p&gt;</content><category term="Technology"></category></entry><entry><title>Scrapy 使用小记 1</title><link href="https://luoyetx.github.io/using-scrapy-1.html" rel="alternate"></link><published>2014-12-28T00:00:00+08:00</published><updated>2014-12-28T00:00:00+08:00</updated><author><name></name></author><id>tag:luoyetx.github.io,2014-12-28:/using-scrapy-1.html</id><summary type="html">&lt;p&gt;&lt;a href="http://scrapy.org/"&gt;Scrapy&lt;/a&gt;是一套由&lt;a href="https://www.python.org/"&gt;Python&lt;/a&gt;编写的爬虫框架，基于异步事件驱动的&lt;a href="https://twistedmatrix.com/trac/"&gt;Twisted&lt;/a&gt;库。 在Scrapy的框架下，我们可以很方便地编写爬虫来抓取页面。Scrapy官方文档中有一个简单的&lt;a href="http://doc.scrapy.org/en/latest/intro/tutorial.html"&gt;教程&lt;/a&gt;。通过这个教程，我们可以基本了解到如何在Scrapy提供的框架下编写代码。&lt;/p&gt;
+&lt;h3&gt;安装Scrapy&lt;/h3&gt;
+&lt;p&gt;在Windows下安装Scrapy可能会比较费劲，主要是因为Scrapy依赖的一些库是用C写的，哪怕你在Windows下配置了gcc或者是vc的编译器，还是会因为缺少相应库的头文件而出现编译错误。Scrapy官方文档针对Windows有相应的&lt;a href="http://doc.scrapy.org/en/latest/intro/install.html"&gt;安装指南&lt;/a&gt;。如果你不嫌麻烦的话可以照着安装指南来。不过在Windows下我比较推荐一个Python发行包&lt;a href="https://code.google.com/p/pythonxy/"&gt;pythonxy&lt;/a&gt;。这个链接估计是常年被墙，大家可以通过别的方法下载这个发行包，我这里提供一个&lt;a href="http://pan.baidu.com/s/1c0s5c56"&gt;百度网盘&lt;/a&gt;。pythonxy其实上是一个Python科学计算包集合，里面提供了很多Python的开发库，这些库很多都是有C的拓展，不过pythoxy已经帮我们编译好了，而且还集成了其他有用的Python库，包括Scrapy依赖的库。 Linux和Unix可以很方便的通过pip命令安装Scrapy，大部分*nix发行版中的Python都含有Scrapy依赖的库，所以我们可以直 接使用pip。当然，如果在Windows中安装了pythonxy，我们也可以通过pip来安装。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ pip install scrapy&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这样我们就装好了Scrapy库。&lt;/p&gt;
+&lt;h3&gt;创建Scrapy Project&lt;/h3&gt;
+&lt;p&gt;我们可以通过Scrapy提供的命令行工具轻松地创建初始项目，这个对我们开发者来说相当的友好，就像 …&lt;/p&gt;</summary><content type="html">&lt;p&gt;&lt;a href="http://scrapy.org/"&gt;Scrapy&lt;/a&gt;是一套由&lt;a href="https://www.python.org/"&gt;Python&lt;/a&gt;编写的爬虫框架，基于异步事件驱动的&lt;a href="https://twistedmatrix.com/trac/"&gt;Twisted&lt;/a&gt;库。 在Scrapy的框架下，我们可以很方便地编写爬虫来抓取页面。Scrapy官方文档中有一个简单的&lt;a href="http://doc.scrapy.org/en/latest/intro/tutorial.html"&gt;教程&lt;/a&gt;。通过这个教程，我们可以基本了解到如何在Scrapy提供的框架下编写代码。&lt;/p&gt;
+&lt;h3&gt;安装Scrapy&lt;/h3&gt;
+&lt;p&gt;在Windows下安装Scrapy可能会比较费劲，主要是因为Scrapy依赖的一些库是用C写的，哪怕你在Windows下配置了gcc或者是vc的编译器，还是会因为缺少相应库的头文件而出现编译错误。Scrapy官方文档针对Windows有相应的&lt;a href="http://doc.scrapy.org/en/latest/intro/install.html"&gt;安装指南&lt;/a&gt;。如果你不嫌麻烦的话可以照着安装指南来。不过在Windows下我比较推荐一个Python发行包&lt;a href="https://code.google.com/p/pythonxy/"&gt;pythonxy&lt;/a&gt;。这个链接估计是常年被墙，大家可以通过别的方法下载这个发行包，我这里提供一个&lt;a href="http://pan.baidu.com/s/1c0s5c56"&gt;百度网盘&lt;/a&gt;。pythonxy其实上是一个Python科学计算包集合，里面提供了很多Python的开发库，这些库很多都是有C的拓展，不过pythoxy已经帮我们编译好了，而且还集成了其他有用的Python库，包括Scrapy依赖的库。 Linux和Unix可以很方便的通过pip命令安装Scrapy，大部分*nix发行版中的Python都含有Scrapy依赖的库，所以我们可以直 接使用pip。当然，如果在Windows中安装了pythonxy，我们也可以通过pip来安装。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ pip install scrapy&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;这样我们就装好了Scrapy库。&lt;/p&gt;
+&lt;h3&gt;创建Scrapy Project&lt;/h3&gt;
+&lt;p&gt;我们可以通过Scrapy提供的命令行工具轻松地创建初始项目，这个对我们开发者来说相当的友好，就像&lt;a href="https://www.djangoproject.com/"&gt;django&lt;/a&gt;提供的命令行工具一样。我们通过观察初始项目的目录结构和文件命名，可以大致上了解整个项目的结构。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;$ scrapy startproject spixiv&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;通过这条命令，我们可以初始化一个scrapy项目。这里的spixiv是项目的名称。我们看看Scrapy为我们生成了哪些东西。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="err"&gt;  spixiv&lt;/span&gt;
+&lt;span class="err"&gt;    ├── scrapy.cfg&lt;/span&gt;
+&lt;span class="err"&gt;    └── spixiv&lt;/span&gt;
+&lt;span class="err"&gt;      ├── __init__.py&lt;/span&gt;
+&lt;span class="err"&gt;      ├── items.py&lt;/span&gt;
+&lt;span class="err"&gt;      ├── pipelines.py&lt;/span&gt;
+&lt;span class="err"&gt;      ├── settings.py&lt;/span&gt;
+&lt;span class="err"&gt;      └── spiders&lt;/span&gt;
+&lt;span class="err"&gt;        └── __init__.py&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;我们可以看到顶级目录是spixiv，下面有一个scrapy.cfg文件和一个spixiv目录(这个目录也是一个Python包)。scrapy.cfg这个文件一般不用去理会它，他只是向Scrapy提供了项目的配置信息(真正的配置信息其实在settings.py文件中，scrapy.cfg只是在其中有一个字段指向了这个settings.py文件)。&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="c1"&gt;# Automatically created by: scrapy startproject&lt;/span&gt;
+&lt;span class="c1"&gt;#&lt;/span&gt;
+&lt;span class="c1"&gt;# For more information about the [deploy] section see:&lt;/span&gt;
+&lt;span class="c1"&gt;# http://doc.scrapy.org/en/latest/topics/scrapyd.html&lt;/span&gt;
+
+&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;settings&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;default&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;spixiv&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;settings&lt;/span&gt;
+
+&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;deploy&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="c1"&gt;#url = http://localhost:6800/&lt;/span&gt;
+&lt;span class="n"&gt;project&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;spixiv&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;以上是scrapy.cfg文件中的所有内容。我们代码的编写主要在spixiv目录下。&lt;/p&gt;
+&lt;h3&gt;分析初始项目结构&lt;/h3&gt;
+&lt;p&gt;个人非常喜欢框架提供startproject这种类似的工具，因为这往往就是这个框架下项目的最佳组织结构。这里不得不提一下django提供的初始项目结构，非常的模块化，从中我们也可以窥探到这些框架自身的组织结构和运行流程。下面我们来分析分析Scrapy为我们创建的初始项目&lt;/p&gt;
+&lt;h5&gt;scrapy.cfg&lt;/h5&gt;
+&lt;p&gt;这个文件在上一节中已经提到过，它只是给Scrapy命令行工具提供一个基础的配置信息(这也是为什么我们后面运行scrapy命令时必须和这个文件在同一目录下)。里面的&lt;code&gt;default&lt;/code&gt;字段提供了项目配置的文件。&lt;/p&gt;
+&lt;h5&gt;spixiv/settings.py&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;BOT_NAME&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;spixiv&amp;#39;&lt;/span&gt;
+
+&lt;span class="n"&gt;SPIDER_MODULES&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;spixiv.spiders&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+&lt;span class="n"&gt;NEWSPIDER_MODULE&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;spixiv.spiders&amp;#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个文件里才是真正的项目配置(其实也没有多少东西)，BOT_NAME指明我们的项目名称(爬虫机器人？)，SPIDER_MODULES告诉Scrapy框架应该在哪些模块中寻找我们编写的爬虫。NEWSPIDER_MODULE这个字段其实可有可无，如果你需要Scrapy为你生成Spider模板的话，那么Scrapy生成的代码就会被写在这里设置的模块下。&lt;/p&gt;
+&lt;h5&gt;spixiv/items.py&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;scrapy&lt;/span&gt;
+
+&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SpixivItem&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;scrapy&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;Item&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="c1"&gt;# define the fields for your item here like:&lt;/span&gt;
+    &lt;span class="c1"&gt;# name = scrapy.Field()&lt;/span&gt;
+    &lt;span class="k"&gt;pass&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个文件中主要用来编写我们需要爬取的信息，我们将对抓取到的信息抽象并包装为一个一个的item，而这些item的定义就可以放在这个文件中。后面谈到Scrapy整个框架的流程时，我们可以看到这样做的好处。&lt;/p&gt;
+&lt;h5&gt;spixiv/pipelines.py&lt;/h5&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="k"&gt;class&lt;/span&gt; &lt;span class="nc"&gt;SpixivPipeline&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="nb"&gt;object&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+    &lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;process_item&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="bp"&gt;self&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;item&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;spider&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+        &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;item&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;这个文件里定义了对item的处理行为，默认没有做处理。如果要对item做额外的处理，可以在这里编写代码逻辑，还要在settings.py中添加相应的字段让Scrapy框架来加载我们的处理逻辑(默认不会加载)。&lt;/p&gt;
+&lt;p&gt;以上就是Scrapy为我们创建的项目结构，非常简洁的结构，下面我们就可以开始编写Spider了。&lt;/p&gt;</content><category term="Technology"></category></entry></feed>
