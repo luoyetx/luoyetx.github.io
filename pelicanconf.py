@@ -83,7 +83,7 @@ WEBSITE = 'luoyetx.github.io'
 GITHUB = 'luoyetx'
 #TWITTER = '@iamsuheb'
 
-CAREER_SUMMARY = 'I am currectly working at ByteDance Search Group, focused on search for Tiktok. Before, I have worked on face related algorithm including detection, alignment and recognition.'
+CAREER_SUMMARY = 'I am currectly working at Shopee.'
 
 # SKILLS = [
 # 	{
@@ -119,6 +119,11 @@ PROJECTS = [
         'url': 'https://github.com/luoyetx/deep-landmark',
 		'tagline': 'Predict facial landmarks with Deep CNNs powered by Caffe.'
 	},
+    {
+        'title': 'luoyetx/mx-lsoftmax',
+        'url': 'https://github.com/luoyetx/mx-lsoftmax',
+        'tagline': 'mxnet version of Large-Margin Softmax Loss for Convolutional Neural Networks.'
+    }
 ]
 
 # LANGUAGES = [
@@ -131,16 +136,16 @@ INTERESTS = [
 
 EXPERIENCES = [
 	{
-		'job_title': 'Algorithm Engineer',
-		'time': 'April 2019 - Present',
-		'company': 'ByteDance, Search Group',
-		'details': 'Search for Tiktok.'
+		'job_title': 'Search Architecture Engineer',
+		'time': 'May 2022 - Present',
+		'company': 'Shopee, Search & Recommend',
+		'details': 'Search for Shopee'
 	},
 	{
-		'job_title': 'Algorithm Engineer',
-		'time': 'July 2018 - April 2019',
-		'company': 'ByteDance, AI Lab',
-		'details': 'Visual search for images and videos.'
+		'job_title': 'Search Algorithm Engineer',
+		'time': 'July 2018 - April 2022',
+		'company': 'ByteDance, Search Group',
+		'details': 'Search for TikTok && Douyin'
 	},
 	{
 		'job_title': 'Research Intern',
