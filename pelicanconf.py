@@ -73,7 +73,7 @@ THEME = './resume'
 ### Resume
 
 NAME = 'Jie Zhang'
-TAGLINE = 'Algorithm Engineer'
+TAGLINE = 'Expert Engineer'
 PIC = 'avatar.jpeg'
 
 EMAIL = 'luoyetx@gmail.com'
@@ -83,18 +83,56 @@ WEBSITE = 'luoyetx.github.io'
 GITHUB = 'luoyetx'
 #TWITTER = '@iamsuheb'
 
+SKILLS = [
+    {
+        'title': 'C/C++',
+        # 'level': '80'
+    },
+    {
+        'title': 'Python',
+        # 'level': '80'
+    },
+    {
+        'title': 'Go',
+        # 'level': '80'
+    }
+]
+
 CAREER_SUMMARY = 'I am currectly working at Shopee.'
 
-# SKILLS = [
-# 	{
-# 		'title': 'C/C++',
-#    		'level': '80'
-#    	},
-#   	{
-#   		'title': 'Python',
-#    		'level': '80'
-#    	}
-# ]
+EXPERIENCES = [
+	{
+		'job_title': 'Search Architecture Engineer',
+		'time': 'May 2022 - Present',
+		'company': 'Shopee, Search & Recommend & Ads',
+		'details': 'search architecture && recall engine.'
+	},
+	{
+		'job_title': 'Search Algorithm Engineer',
+		'time': 'July 2018 - April 2022',
+		'company': 'ByteDance, Search',
+		'details': 'search retrival && ranking && relevance.'
+	},
+	{
+		'job_title': 'Research Intern',
+		'time': 'June 2017 - Aug 2017',
+		'company': 'SenseTime, OCR',
+		'details': 'text recognition && unsupervised data generation.'
+	},
+]
+
+EDUCATIONS = [
+	{
+		'degree': 'Master',
+		'meta': 'Huazhong University of Science and Technology (HUST)',
+		'time': '2015 - 2018'
+	},
+	{
+		'degree': 'Bachelor',
+		'meta': 'Huazhong University of Science and Technology (HUST)',
+		'time': '2011 - 2015'
+	}
+]
 
 PROJECT_INTRO = 'Some projects I have worked on.'
 
@@ -132,38 +170,4 @@ PROJECTS = [
 INTERESTS = [
 	'Gaming',
 	'Coding',
-]
-
-EXPERIENCES = [
-	{
-		'job_title': 'Search Architecture Engineer',
-		'time': 'May 2022 - Present',
-		'company': 'Shopee, Search & Recommend',
-		'details': 'Search for Shopee'
-	},
-	{
-		'job_title': 'Search Algorithm Engineer',
-		'time': 'July 2018 - April 2022',
-		'company': 'ByteDance, Search Group',
-		'details': 'Search for TikTok && Douyin'
-	},
-	{
-		'job_title': 'Research Intern',
-		'time': 'June 2017 - Aug 2017',
-		'company': 'SenseTime, OCR Team',
-		'details': 'Text recognition and unsupervised data generation.'
-	},
-]
-
-EDUCATIONS = [
-	{
-		'degree': 'Master',
-		'meta': 'Huazhong University of Science and Technology (HUST)',
-		'time': '2015 - 2018'
-	},
-	{
-		'degree': 'Bachelor',
-		'meta': 'Huazhong University of Science and Technology (HUST)',
-		'time': '2011 - 2015'
-	}
 ]
