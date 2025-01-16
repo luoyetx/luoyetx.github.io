@@ -105,7 +105,7 @@ EXPERIENCES = [
         'job_title': 'Search Architecture Engineer',
         'time': 'May 2022 - Present',
         'company': 'Shopee, Search & Recommend & Ads',
-        'details': 'search architecture and recall engine for search & recmmend & ads.'
+        'details': 'search architecture and recall engine for search & recommend & ads.'
     },
     {
         'job_title': 'Search Algorithm Engineer',
