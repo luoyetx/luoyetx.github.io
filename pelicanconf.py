@@ -101,62 +101,62 @@ SKILLS = [
 CAREER_SUMMARY = 'I am currectly working at Shopee.'
 
 EXPERIENCES = [
-	{
-		'job_title': 'Search Architecture Engineer',
-		'time': 'May 2022 - Present',
-		'company': 'Shopee, Search & Recommend & Ads',
-		'details': 'search architecture && recall engine.'
-	},
-	{
-		'job_title': 'Search Algorithm Engineer',
-		'time': 'July 2018 - April 2022',
-		'company': 'ByteDance, Search',
-		'details': 'search retrival && ranking && relevance.'
-	},
-	{
-		'job_title': 'Research Intern',
-		'time': 'June 2017 - Aug 2017',
-		'company': 'SenseTime, OCR',
-		'details': 'text recognition && unsupervised data generation.'
-	},
+    {
+        'job_title': 'Search Architecture Engineer',
+        'time': 'May 2022 - Present',
+        'company': 'Shopee, Search & Recommend & Ads',
+        'details': 'search architecture and recall engine for search & recmmend & ads.'
+    },
+    {
+        'job_title': 'Search Algorithm Engineer',
+        'time': 'July 2018 - April 2022',
+        'company': 'ByteDance, Search',
+        'details': 'algorithm for search retrival & ranking & relevance.'
+    },
+    {
+        'job_title': 'Research Intern',
+        'time': 'June 2017 - Aug 2017',
+        'company': 'SenseTime, OCR',
+        'details': 'text recognition and unsupervised data generation.'
+    },
 ]
 
 EDUCATIONS = [
-	{
-		'degree': 'Master',
-		'meta': 'Huazhong University of Science and Technology (HUST)',
-		'time': '2015 - 2018'
-	},
-	{
-		'degree': 'Bachelor',
-		'meta': 'Huazhong University of Science and Technology (HUST)',
-		'time': '2011 - 2015'
-	}
+    {
+        'degree': 'Master',
+        'meta': 'Huazhong University of Science and Technology (HUST)',
+        'time': '2015 - 2018'
+    },
+    {
+        'degree': 'Bachelor',
+        'meta': 'Huazhong University of Science and Technology (HUST)',
+        'time': '2011 - 2015'
+    }
 ]
 
 PROJECT_INTRO = 'Some projects I have worked on.'
 
 PROJECTS = [
-	{
-		'title': 'luoyetx/mini-caffe',
-        'url': 'https://github.com/luoyetx/mini-caffe',
-		'tagline': 'Minimal runtime core of Caffe, Forward only, GPU support and Memory efficiency.'
-	},
-	{
-		'title': 'Pixivly/Pixivly',
-        'url': 'https://github.com/Pixivly/Pixivly',
-		'tagline': 'Daily Top Illustrations On Pixiv.net.'
-	},
-	{
-		'title': 'luoyetx/face-alignment-at-3000fps',
-        'url': 'https://github.com/luoyetx/face-alignment-at-3000fps',
-		'tagline': 'C++ implementation of Face Alignment at 3000 FPS via Regressing Local Binary Features.'
-	},
     {
-		'title': 'luoyetx/deep-landmark',
+        'title': 'luoyetx/mini-caffe',
+        'url': 'https://github.com/luoyetx/mini-caffe',
+        'tagline': 'Minimal runtime core of Caffe, Forward only, GPU support and Memory efficiency.'
+    },
+    {
+        'title': 'Pixivly/Pixivly',
+        'url': 'https://github.com/Pixivly/Pixivly',
+        'tagline': 'Daily Top Illustrations On Pixiv.net.'
+    },
+    {
+        'title': 'luoyetx/face-alignment-at-3000fps',
+        'url': 'https://github.com/luoyetx/face-alignment-at-3000fps',
+        'tagline': 'C++ implementation of Face Alignment at 3000 FPS via Regressing Local Binary Features.'
+    },
+    {
+        'title': 'luoyetx/deep-landmark',
         'url': 'https://github.com/luoyetx/deep-landmark',
-		'tagline': 'Predict facial landmarks with Deep CNNs powered by Caffe.'
-	},
+        'tagline': 'Predict facial landmarks with Deep CNNs powered by Caffe.'
+    },
     {
         'title': 'luoyetx/mx-lsoftmax',
         'url': 'https://github.com/luoyetx/mx-lsoftmax',
@@ -168,6 +168,7 @@ PROJECTS = [
 # ]
 
 INTERESTS = [
-	'Gaming',
-	'Coding',
+    'Gaming',
+    'Coding',
+    'Baking'
 ]
