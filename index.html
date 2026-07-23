@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Jie Zhang — Expert Engineer specializing in search architecture, retrieval, ranking, and relevance.">
+  <meta name="description" content="Jie Zhang — Search Infrastructure Engineer specializing in architecture, retrieval, ranking, and relevance.">
   <meta name="theme-color" content="#173f3a">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23173f3a'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='28' fill='white' font-family='serif'%3EJZ%3C/text%3E%3C/svg%3E">
-  <title>Jie Zhang · Expert Engineer</title>
+  <title>Jie Zhang · Search Infrastructure Engineer</title>
   <style>
     :root {
       --ink: #162321;
@@ -19,8 +19,13 @@
       --shadow: 0 24px 70px rgba(26, 56, 51, .13);
     }
 
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
       margin: 0;
@@ -49,7 +54,7 @@
       width: min(1120px, calc(100% - 40px));
       margin: 56px auto;
       overflow: hidden;
-      background: #fffdfa;
+      background: var(--card);
       border: 1px solid rgba(22, 35, 33, .08);
       border-radius: 28px;
       box-shadow: var(--shadow);
@@ -93,7 +98,12 @@
       background: #d8e5e1;
     }
 
-    h1, h2, h3, p { margin-top: 0; }
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
 
     h1 {
       margin-bottom: 4px;
@@ -113,7 +123,8 @@
       text-transform: uppercase;
     }
 
-    .contact, .plain-list {
+    .contact,
+    .plain-list {
       margin: 0;
       padding: 0;
       list-style: none;
@@ -126,7 +137,9 @@
       font-size: .94rem;
     }
 
-    .contact a { text-decoration: none; }
+    .contact a {
+      text-decoration: none;
+    }
 
     .contact span {
       display: inline-block;
@@ -154,9 +167,18 @@
       color: #e1ebe8;
     }
 
-    .education-item + .education-item { margin-top: 18px; }
-    .education-item strong, .education-item span { display: block; }
-    .education-item strong { font-size: 1rem; }
+    .education-item + .education-item {
+      margin-top: 18px;
+    }
+
+    .education-item strong,
+    .education-item span {
+      display: block;
+    }
+
+    .education-item strong {
+      font-size: 1rem;
+    }
 
     .education-item span {
       color: #bcd0cc;
@@ -170,14 +192,14 @@
 
     .intro {
       max-width: 690px;
-      margin-bottom: 56px;
-      color: #30433f;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(1.3rem, 2.4vw, 1.8rem);
-      line-height: 1.48;
+      margin-bottom: 0;
+      color: var(--muted);
+      overflow-wrap: anywhere;
     }
 
-    .section { margin-top: 50px; }
+    .section {
+      margin-top: 50px;
+    }
 
     .section-title {
       display: flex;
@@ -205,8 +227,7 @@
     .timeline-item {
       position: relative;
       display: grid;
-      grid-template-columns: 180px 1fr;
-      gap: 24px;
+      gap: 8px;
     }
 
     .timeline-item:not(:last-child)::before {
@@ -224,6 +245,7 @@
       padding-left: 24px;
       color: var(--muted);
       font-size: .88rem;
+      white-space: nowrap;
     }
 
     .date::before {
@@ -232,11 +254,15 @@
       left: 0;
       width: 11px;
       height: 11px;
-      border: 3px solid #fffdfa;
+      border: 3px solid var(--card);
       border-radius: 50%;
       background: var(--accent);
       box-shadow: 0 0 0 1px var(--accent);
       content: "";
+    }
+
+    .experience-body {
+      padding-left: 24px;
     }
 
     .timeline h3 {
@@ -249,54 +275,13 @@
       color: var(--accent);
       font-size: .93rem;
       font-weight: 650;
+      overflow-wrap: anywhere;
     }
 
     .details {
       margin-bottom: 0;
       color: var(--muted);
-    }
-
-    .intro,
-    .company,
-    .details,
-    .project {
       overflow-wrap: anywhere;
-    }
-
-    .projects {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
-    }
-
-    .project {
-      display: block;
-      min-height: 150px;
-      padding: 22px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      text-decoration: none;
-      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
-    }
-
-    .project:hover {
-      color: inherit;
-      border-color: rgba(29, 115, 102, .55);
-      box-shadow: 0 12px 28px rgba(26, 56, 51, .08);
-      transform: translateY(-2px);
-    }
-
-    .project strong {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--accent);
-      font-size: 1rem;
-    }
-
-    .project span {
-      color: var(--muted);
-      font-size: .91rem;
-      line-height: 1.55;
     }
 
     footer {
@@ -313,9 +298,14 @@
         border-radius: 20px;
       }
 
-      .layout { grid-template-columns: 1fr; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
 
-      .sidebar, .main { padding: 42px 34px; }
+      .sidebar,
+      .main {
+        padding: 42px 34px;
+      }
 
       .sidebar {
         display: grid;
@@ -334,27 +324,28 @@
         margin-bottom: 10px;
       }
 
-      .sidebar-section { margin-top: 28px; }
-      .main { padding-top: 46px; }
+      .sidebar-section {
+        margin-top: 28px;
+      }
+
+      .main {
+        padding-top: 46px;
+      }
     }
 
     @media (max-width: 600px) {
-      .sidebar { display: block; }
+      .sidebar {
+        display: block;
+      }
 
       .portrait {
         width: 120px;
         height: 120px;
       }
 
-      .contact { margin-bottom: 34px; }
-
-      .timeline-item {
-        grid-template-columns: 1fr;
-        gap: 7px;
+      .contact {
+        margin-bottom: 34px;
       }
-
-      .timeline-item:not(:last-child)::before { display: none; }
-      .projects { grid-template-columns: 1fr; }
     }
 
     @media print {
@@ -371,19 +362,21 @@
         box-shadow: none;
       }
 
-      .layout { grid-template-columns: 29% 71%; }
+      .layout {
+        grid-template-columns: 29% 71%;
+      }
 
       .sidebar {
         print-color-adjust: exact;
         -webkit-print-color-adjust: exact;
       }
 
-      .main { padding: 38px 42px; }
-      .section { margin-top: 30px; }
+      .main {
+        padding: 38px 42px;
+      }
 
-      .project {
-        min-height: auto;
-        break-inside: avoid;
+      .section {
+        margin-top: 30px;
       }
     }
   </style>
@@ -395,7 +388,7 @@
         <img class="portrait" src="https://github.com/luoyetx.png?size=320" alt="Portrait of Jie Zhang" width="148" height="148">
         <div>
           <h1>Jie Zhang</h1>
-          <p class="role">Expert Engineer</p>
+          <p class="role">Search Infrastructure Engineer</p>
         </div>
 
         <ul class="contact" aria-label="Contact links">
@@ -421,9 +414,17 @@
         <section class="sidebar-section">
           <h2>Skills</h2>
           <ul class="plain-list">
-            <li>C / C++</li>
-            <li>Python</li>
-            <li>Go</li>
+            <li>Search &amp; Retrieval Systems</li>
+            <li>Distributed Systems</li>
+            <li>C++ / Python / Go</li>
+          </ul>
+        </section>
+
+        <section class="sidebar-section">
+          <h2>Tools</h2>
+          <ul class="plain-list">
+            <li>Claude Code</li>
+            <li>Codex</li>
           </ul>
         </section>
 
@@ -438,63 +439,40 @@
       </aside>
 
       <div class="main">
-        <p class="intro">I build search systems, with a focus on architecture, retrieval, ranking, and relevance.</p>
+        <section>
+          <h2 class="section-title">Current Focus</h2>
+          <p class="intro">I currently focus on building a Vespa-based retrieval engine for Search, Advertising, and Recommendation. I also actively use AI coding agents, including Claude Code and Codex, to accelerate software development.</p>
+        </section>
 
         <section class="section">
           <h2 class="section-title">Experience</h2>
           <div class="timeline">
             <article class="timeline-item">
               <div class="date">May 2022 — Present</div>
-              <div>
+              <div class="experience-body">
                 <h3>Search Architecture Engineer</h3>
-                <p class="company">Shopee · Search, Recommendation &amp; Ads</p>
-                <p class="details">Search architecture and recall engines across search, recommendation, and advertising systems.</p>
+                <p class="company">Shopee · Search &amp; Recommendation &amp; Ads</p>
+                <p class="details">Search architecture and retrieval systems across search, recommendation, and advertising.</p>
               </div>
             </article>
 
             <article class="timeline-item">
               <div class="date">July 2018 — April 2022</div>
-              <div>
+              <div class="experience-body">
                 <h3>Search Algorithm Engineer</h3>
                 <p class="company">ByteDance · Search</p>
-                <p class="details">Algorithms for search retrieval, ranking, and relevance.</p>
+                <p class="details">Developed algorithms for search retrieval, ranking, and relevance.</p>
               </div>
             </article>
 
             <article class="timeline-item">
               <div class="date">June 2017 — August 2017</div>
-              <div>
+              <div class="experience-body">
                 <h3>Research Intern</h3>
                 <p class="company">SenseTime · OCR</p>
-                <p class="details">Text recognition and unsupervised data generation.</p>
+                <p class="details">Researched text recognition and unsupervised data generation.</p>
               </div>
             </article>
-          </div>
-        </section>
-
-        <section class="section">
-          <h2 class="section-title">Selected Projects</h2>
-          <div class="projects">
-            <a class="project" href="https://github.com/luoyetx/mini-caffe">
-              <strong>mini-caffe</strong>
-              <span>A minimal, forward-only Caffe runtime with GPU support and memory efficiency.</span>
-            </a>
-            <a class="project" href="https://github.com/Pixivly/Pixivly">
-              <strong>Pixivly</strong>
-              <span>A showcase of the daily top illustrations on Pixiv.</span>
-            </a>
-            <a class="project" href="https://github.com/luoyetx/face-alignment-at-3000fps">
-              <strong>face-alignment-at-3000fps</strong>
-              <span>C++ implementation of face alignment via regressing local binary features.</span>
-            </a>
-            <a class="project" href="https://github.com/luoyetx/deep-landmark">
-              <strong>deep-landmark</strong>
-              <span>Facial landmark prediction with deep convolutional neural networks.</span>
-            </a>
-            <a class="project" href="https://github.com/luoyetx/mx-lsoftmax">
-              <strong>mx-lsoftmax</strong>
-              <span>MXNet implementation of Large-Margin Softmax Loss.</span>
-            </a>
           </div>
         </section>
 
