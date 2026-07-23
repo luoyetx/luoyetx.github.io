@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Jie Zhang — Expert Engineer specializing in search architecture, retrieval, ranking, and relevance.">
+  <meta name="theme-color" content="#173f3a">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23173f3a'/%3E%3Ctext x='32' y='42' text-anchor='middle' font-size='28' fill='white' font-family='serif'%3EJZ%3C/text%3E%3C/svg%3E">
+  <title>Jie Zhang · Expert Engineer</title>
+  <style>
+    :root {
+      --ink: #162321;
+      --muted: #5f706d;
+      --paper: #f4f1ea;
+      --card: #fffdfa;
+      --accent: #1d7366;
+      --accent-dark: #173f3a;
+      --line: #dce3df;
+      --shadow: 0 24px 70px rgba(26, 56, 51, .13);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 12%, rgba(29, 115, 102, .13), transparent 26rem),
+        radial-gradient(circle at 92% 88%, rgba(207, 153, 76, .12), transparent 24rem),
+        var(--paper);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-color: rgba(29, 115, 102, .45);
+      text-underline-offset: .2em;
+    }
+
+    a:hover {
+      color: var(--accent);
+      text-decoration-color: var(--accent);
+    }
+
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: 56px auto;
+      overflow: hidden;
+      background: #fffdfa;
+      border: 1px solid rgba(22, 35, 33, .08);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: relative;
+      padding: 52px 38px;
+      overflow: hidden;
+      color: #f7fbf9;
+      background:
+        linear-gradient(160deg, rgba(255, 255, 255, .06), transparent 40%),
+        var(--accent-dark);
+    }
+
+    .sidebar::after {
+      position: absolute;
+      right: -45px;
+      bottom: 88px;
+      width: 150px;
+      height: 150px;
+      border: 1px solid rgba(255, 255, 255, .12);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .portrait {
+      display: block;
+      width: 148px;
+      height: 148px;
+      margin-bottom: 28px;
+      object-fit: cover;
+      border: 5px solid rgba(255, 255, 255, .16);
+      border-radius: 42% 58% 48% 52% / 52% 45% 55% 48%;
+      background: #d8e5e1;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      margin-bottom: 4px;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2.4rem, 5vw, 3.65rem);
+      font-weight: 500;
+      letter-spacing: -.04em;
+      line-height: 1.05;
+    }
+
+    .role {
+      margin-bottom: 30px;
+      color: #bcd8d2;
+      font-size: .92rem;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .contact, .plain-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .contact {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 42px;
+      font-size: .94rem;
+    }
+
+    .contact a { text-decoration: none; }
+
+    .contact span {
+      display: inline-block;
+      width: 24px;
+      color: #80b9af;
+    }
+
+    .sidebar-section {
+      position: relative;
+      z-index: 1;
+      margin-top: 34px;
+    }
+
+    .sidebar h2 {
+      margin-bottom: 14px;
+      color: #80b9af;
+      font-size: .75rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .plain-list {
+      display: grid;
+      gap: 8px;
+      color: #e1ebe8;
+    }
+
+    .education-item + .education-item { margin-top: 18px; }
+    .education-item strong, .education-item span { display: block; }
+    .education-item strong { font-size: 1rem; }
+
+    .education-item span {
+      color: #bcd0cc;
+      font-size: .88rem;
+    }
+
+    .main {
+      min-width: 0;
+      padding: 64px 68px 70px;
+    }
+
+    .intro {
+      max-width: 690px;
+      margin-bottom: 56px;
+      color: #30433f;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(1.3rem, 2.4vw, 1.8rem);
+      line-height: 1.48;
+    }
+
+    .section { margin-top: 50px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      color: var(--accent);
+      font-size: .8rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .section-title::after {
+      height: 1px;
+      flex: 1;
+      background: var(--line);
+      content: "";
+    }
+
+    .timeline {
+      display: grid;
+      gap: 34px;
+    }
+
+    .timeline-item {
+      position: relative;
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 24px;
+    }
+
+    .timeline-item:not(:last-child)::before {
+      position: absolute;
+      top: 32px;
+      bottom: -35px;
+      left: 5px;
+      width: 1px;
+      background: var(--line);
+      content: "";
+    }
+
+    .date {
+      position: relative;
+      padding-left: 24px;
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .date::before {
+      position: absolute;
+      top: .55em;
+      left: 0;
+      width: 11px;
+      height: 11px;
+      border: 3px solid #fffdfa;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+      content: "";
+    }
+
+    .timeline h3 {
+      margin-bottom: 2px;
+      font-size: 1.08rem;
+    }
+
+    .company {
+      margin-bottom: 7px;
+      color: var(--accent);
+      font-size: .93rem;
+      font-weight: 650;
+    }
+
+    .details {
+      margin-bottom: 0;
+      color: var(--muted);
+    }
+
+    .intro,
+    .company,
+    .details,
+    .project {
+      overflow-wrap: anywhere;
+    }
+
+    .projects {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .project {
+      display: block;
+      min-height: 150px;
+      padding: 22px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      text-decoration: none;
+      transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    .project:hover {
+      color: inherit;
+      border-color: rgba(29, 115, 102, .55);
+      box-shadow: 0 12px 28px rgba(26, 56, 51, .08);
+      transform: translateY(-2px);
+    }
+
+    .project strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 1rem;
+    }
+
+    .project span {
+      color: var(--muted);
+      font-size: .91rem;
+      line-height: 1.55;
+    }
+
+    footer {
+      margin-top: 52px;
+      color: #81908d;
+      font-size: .8rem;
+    }
+
+    @media (max-width: 820px) {
+      .page {
+        width: calc(100% - 24px);
+        max-width: 680px;
+        margin: 12px auto;
+        border-radius: 20px;
+      }
+
+      .layout { grid-template-columns: 1fr; }
+
+      .sidebar, .main { padding: 42px 34px; }
+
+      .sidebar {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        gap: 0 28px;
+      }
+
+      .portrait {
+        grid-row: span 2;
+        width: 132px;
+        height: 132px;
+      }
+
+      .contact {
+        grid-column: 2;
+        margin-bottom: 10px;
+      }
+
+      .sidebar-section { margin-top: 28px; }
+      .main { padding-top: 46px; }
+    }
+
+    @media (max-width: 600px) {
+      .sidebar { display: block; }
+
+      .portrait {
+        width: 120px;
+        height: 120px;
+      }
+
+      .contact { margin-bottom: 34px; }
+
+      .timeline-item {
+        grid-template-columns: 1fr;
+        gap: 7px;
+      }
+
+      .timeline-item:not(:last-child)::before { display: none; }
+      .projects { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        font-size: 11px;
+      }
+
+      .page {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .layout { grid-template-columns: 29% 71%; }
+
+      .sidebar {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .main { padding: 38px 42px; }
+      .section { margin-top: 30px; }
+
+      .project {
+        min-height: auto;
+        break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="layout">
+      <aside class="sidebar">
+        <img class="portrait" src="https://github.com/luoyetx.png?size=320" alt="Portrait of Jie Zhang" width="148" height="148">
+        <div>
+          <h1>Jie Zhang</h1>
+          <p class="role">Expert Engineer</p>
+        </div>
+
+        <ul class="contact" aria-label="Contact links">
+          <li><span aria-hidden="true">✉</span><a href="mailto:luoyetx@gmail.com">luoyetx@gmail.com</a></li>
+          <li><span aria-hidden="true">↗</span><a href="https://luoyetx.github.io">luoyetx.github.io</a></li>
+          <li><span aria-hidden="true">⌘</span><a href="https://github.com/luoyetx">github.com/luoyetx</a></li>
+        </ul>
+
+        <section class="sidebar-section">
+          <h2>Education</h2>
+          <div class="education-item">
+            <strong>Master</strong>
+            <span>Huazhong University of Science and Technology</span>
+            <span>2015 — 2018</span>
+          </div>
+          <div class="education-item">
+            <strong>Bachelor</strong>
+            <span>Huazhong University of Science and Technology</span>
+            <span>2011 — 2015</span>
+          </div>
+        </section>
+
+        <section class="sidebar-section">
+          <h2>Skills</h2>
+          <ul class="plain-list">
+            <li>C / C++</li>
+            <li>Python</li>
+            <li>Go</li>
+          </ul>
+        </section>
+
+        <section class="sidebar-section">
+          <h2>Interests</h2>
+          <ul class="plain-list">
+            <li>Gaming</li>
+            <li>Coding</li>
+            <li>Baking</li>
+          </ul>
+        </section>
+      </aside>
+
+      <div class="main">
+        <p class="intro">I build search systems, with a focus on architecture, retrieval, ranking, and relevance.</p>
+
+        <section class="section">
+          <h2 class="section-title">Experience</h2>
+          <div class="timeline">
+            <article class="timeline-item">
+              <div class="date">May 2022 — Present</div>
+              <div>
+                <h3>Search Architecture Engineer</h3>
+                <p class="company">Shopee · Search, Recommendation &amp; Ads</p>
+                <p class="details">Search architecture and recall engines across search, recommendation, and advertising systems.</p>
+              </div>
+            </article>
+
+            <article class="timeline-item">
+              <div class="date">July 2018 — April 2022</div>
+              <div>
+                <h3>Search Algorithm Engineer</h3>
+                <p class="company">ByteDance · Search</p>
+                <p class="details">Algorithms for search retrieval, ranking, and relevance.</p>
+              </div>
+            </article>
+
+            <article class="timeline-item">
+              <div class="date">June 2017 — August 2017</div>
+              <div>
+                <h3>Research Intern</h3>
+                <p class="company">SenseTime · OCR</p>
+                <p class="details">Text recognition and unsupervised data generation.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section">
+          <h2 class="section-title">Selected Projects</h2>
+          <div class="projects">
+            <a class="project" href="https://github.com/luoyetx/mini-caffe">
+              <strong>mini-caffe</strong>
+              <span>A minimal, forward-only Caffe runtime with GPU support and memory efficiency.</span>
+            </a>
+            <a class="project" href="https://github.com/Pixivly/Pixivly">
+              <strong>Pixivly</strong>
+              <span>A showcase of the daily top illustrations on Pixiv.</span>
+            </a>
+            <a class="project" href="https://github.com/luoyetx/face-alignment-at-3000fps">
+              <strong>face-alignment-at-3000fps</strong>
+              <span>C++ implementation of face alignment via regressing local binary features.</span>
+            </a>
+            <a class="project" href="https://github.com/luoyetx/deep-landmark">
+              <strong>deep-landmark</strong>
+              <span>Facial landmark prediction with deep convolutional neural networks.</span>
+            </a>
+            <a class="project" href="https://github.com/luoyetx/mx-lsoftmax">
+              <strong>mx-lsoftmax</strong>
+              <span>MXNet implementation of Large-Margin Softmax Loss.</span>
+            </a>
+          </div>
+        </section>
+
+        <footer>© Jie Zhang</footer>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
